@@ -97,6 +97,11 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
             NetworkObject networkPlayerObject = runner.Spawn(_playerPrefab, spawnPosition, Quaternion.identity, player);
             // Keep track of the player avatars for easy access
             _spawnedCharacters.Add(player, networkPlayerObject);
+
+            foreach (var _player in FindObjectsOfType<Player>())
+            {
+                _player.RPC_HostSelectAvatar();
+            }
         }
     }
 

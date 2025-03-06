@@ -1,4 +1,6 @@
 using Fusion;
+using System.Globalization;
+using System;
 using TMPro;
 using UnityEngine;
 
@@ -9,17 +11,22 @@ public class Player : NetworkBehaviour
     [SerializeField] private PhysxBall _prefabPhysxBall;
 
     private Vector3 _forward;
-    [Networked] private TickTimer delay { get; set; }
+    [Networked] private TickTimer _delay { get; set; }
     [Networked] public bool _canMove { get; set; } = false;
-    [Networked]
-    public bool SpawnedProjectile { get; set; }
-    public Material _material;
+    [Networked] public bool SpawnedProjectile { get; set; }
+    private SpriteRenderer _bodyRenderer;
+    [SerializeField] private Sprite[] _avatarSprites;
+    private int _selectedAvatarIndex;
+    private ChangeDetector _changeDetector;
+    private int _hostAvatarIndex = 0;
+    [SerializeField] private BasicSpawner _spawner;
 
     private void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
         _forward = transform.up;
-        _material = GetComponentInChildren<SpriteRenderer>().material;
+        _bodyRenderer = transform.Find("Body").GetComponent<SpriteRenderer>();
+        _spawner = FindObjectOfType<BasicSpawner>();
     }
 
     public override void FixedUpdateNetwork()
@@ -32,11 +39,11 @@ public class Player : NetworkBehaviour
             if (data.direction.sqrMagnitude > 0)
                 _forward = data.direction;
 
-            if (HasStateAuthority && delay.ExpiredOrNotRunning(Runner))
+            if (HasStateAuthority && _delay.ExpiredOrNotRunning(Runner))
             {
                 if (data.buttons.IsSet(NetworkInputData.MOUSEBUTTON1))
                 {
-                    delay = TickTimer.CreateFromSeconds(Runner, 0.5f);
+                    _delay = TickTimer.CreateFromSeconds(Runner, 0.5f);
                     Runner.Spawn(_prefabPhysxBall,
                       transform.position + _forward,
                       Quaternion.LookRotation(_forward),
@@ -51,17 +58,33 @@ public class Player : NetworkBehaviour
         }
     }
 
-    private ChangeDetector _changeDetector;
-
     public override void Spawned()
     {
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
+        _selectedAvatarIndex = PlayerPrefs.GetInt("SelectedAvatar", 0);
+
+        if (_selectedAvatarIndex >= 0 && _selectedAvatarIndex < _avatarSprites.Length)
+        {
+            _bodyRenderer.sprite = _avatarSprites[_selectedAvatarIndex];
+        }
+        if (_spawner.IsPlayerHost())
+        {
+            _hostAvatarIndex = _selectedAvatarIndex;
+        }
     }
 
     public void CanMove()
     {
         _canMove = true;
         RPC_AccessCanMove();
+    }
+
+    public void SaveHostIndex( int avatarindex)
+    {
+        if (_spawner.IsPlayerHost())
+        {
+            _hostAvatarIndex = avatarindex;
+        }
     }
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority, HostMode = RpcHostMode.SourceIsHostPlayer)]
@@ -73,7 +96,22 @@ public class Player : NetworkBehaviour
     [Rpc(RpcSources.StateAuthority, RpcTargets.All, HostMode = RpcHostMode.SourceIsServer)]
     public void RPC_CanMove(bool canMove)
     {
-        Debug.Log($"Client Received CanMove: {canMove}");
         _canMove = canMove;
     }
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority, HostMode = RpcHostMode.SourceIsHostPlayer)]
+    public void RPC_HostSelectAvatar()
+    {
+        RPC_UpdateHostAvatar(_hostAvatarIndex);
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All, HostMode = RpcHostMode.SourceIsServer)]
+    public void RPC_UpdateHostAvatar(int avatarIndex)
+    {
+        // Ensure the avatarIndex is within valid range
+        if (avatarIndex >= 0 && avatarIndex < _avatarSprites.Length)
+        {
+            _bodyRenderer.sprite = _avatarSprites[avatarIndex];
+        }
+    }    
 }
