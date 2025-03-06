@@ -154,15 +154,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Speed: 2
+  _prefabBall: {fileID: 8479936810076554737, guid: 60db669055a8c8d44812a067f3098016, type: 3}
   _prefabPhysxBall: {fileID: 8634516277236128318, guid: 076fbaa81903b5742a8aa0a62c4162c4, type: 3}
-  __canMove: 0
   _SpawnedProjectile: 0
   _material: {fileID: 2100000, guid: a34b328756f978c49991555f8829307f, type: 2}
-  _avatarSprites:
-  - {fileID: 21300000, guid: c3a65f2146b2860438c8d878213216a7, type: 2}
-  - {fileID: 21300000, guid: c87388d416d0b084a95dc7d2f780bf7c, type: 2}
-  - {fileID: 21300000, guid: 4c6dd1bdfc4111642941b79ed3a6b002, type: 2}
-  - {fileID: 21300000, guid: 2e013a3a3db21a048acfe26c37a7090c, type: 2}
 --- !u!50 &1250274510086666685
 Rigidbody2D:
   serializedVersion: 4
