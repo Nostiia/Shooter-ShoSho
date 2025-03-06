@@ -102,6 +102,10 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
             {
                 _player.RPC_HostSelectAvatar();
             }
+            foreach (var _weapon in FindObjectsOfType<WeaponManager>())
+            {
+                _weapon.RPC_WeaponSpawner();
+            }
         }
     }
 

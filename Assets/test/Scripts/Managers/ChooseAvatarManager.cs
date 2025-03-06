@@ -18,6 +18,10 @@ public class ChooseAvatarManager : MonoBehaviour
     private void Start()
     {
         _selectedAvatarIndex = 0;
+
+        PlayerPrefs.SetInt("SelectedAvatar", _selectedAvatarIndex);
+        PlayerPrefs.Save();
+
         foreach (Image avatar in _avatars)
         {
             avatar.sprite = _spritesForAvatar[_selectedAvatarIndex];
