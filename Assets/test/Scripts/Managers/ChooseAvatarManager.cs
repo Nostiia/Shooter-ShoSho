@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,12 +12,16 @@ public class ChooseAvatarManager : MonoBehaviour
     [SerializeField] private Button _chooseButton;
     [SerializeField] private MainMenuManager _mainMenuManager;
     [SerializeField] private Image[] _avatars;
-
     private int _selectedAvatarIndex = -1;
+    [SerializeField] private Player _player;
 
     private void Start()
     {
         _selectedAvatarIndex = 0;
+
+        PlayerPrefs.SetInt("SelectedAvatar", _selectedAvatarIndex);
+        PlayerPrefs.Save();
+
         foreach (Image avatar in _avatars)
         {
             avatar.sprite = _spritesForAvatar[_selectedAvatarIndex];
@@ -61,15 +66,18 @@ public class ChooseAvatarManager : MonoBehaviour
         PlayerPrefs.SetInt("SelectedAvatar", _selectedAvatarIndex);
         PlayerPrefs.Save();
         Debug.Log("Avatar " + _selectedAvatarIndex + " selected!");
-        
+
         foreach (Image avatar in _avatars)
         {
             avatar.sprite = _spritesForAvatar[_selectedAvatarIndex];
         }
+
+        foreach (var player in FindObjectsOfType<Player>())
+        {
+            player.SaveHostIndex(_selectedAvatarIndex);
+        }
+
         _mainMenuManager.BackToMain();
-
     }
-
-
 }
 
