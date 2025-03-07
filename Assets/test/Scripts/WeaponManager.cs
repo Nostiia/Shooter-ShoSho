@@ -9,15 +9,26 @@ public class WeaponManager : NetworkBehaviour
     private int _hostWeaponIndex = 0;
     private SpriteRenderer _weaponRenderer;
 
+    [SerializeField] private Sprite[] _shotsSprites;
+    [SerializeField] private PhysxBall _prefabPhysxBall;
+    private SpriteRenderer _shotRenderer;
+
     private void Awake()
     {
         _weaponRenderer = transform.Find("Weapon").GetComponent<SpriteRenderer>();
+        _shotRenderer = _prefabPhysxBall.transform.Find("Circle").GetComponent <SpriteRenderer>();
     }
 
     public override void Spawned()
     {
         _hostWeaponIndex = Random.Range(0, _weaponSprites.Length);
         _weaponRenderer.sprite = _weaponSprites[_hostWeaponIndex];
+        _shotRenderer.sprite = _shotsSprites[_hostWeaponIndex];
+    }
+
+    public int WeaponIndex()
+    {
+        return _hostWeaponIndex;
     }
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority, HostMode = RpcHostMode.SourceIsHostPlayer)]
@@ -35,6 +46,7 @@ public class WeaponManager : NetworkBehaviour
             _weaponIndex = Random.Range(0, _weaponSprites.Length);
         }
         _weaponRenderer.sprite = _weaponSprites[_weaponIndex];
+        _shotRenderer.sprite = _shotsSprites [_weaponIndex];
 
     }
 }

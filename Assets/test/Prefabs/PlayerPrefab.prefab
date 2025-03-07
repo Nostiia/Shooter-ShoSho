@@ -244,6 +244,11 @@ MonoBehaviour:
   - {fileID: 21300000, guid: ef0ccda73ce993b4e97ce5f64b608349, type: 2}
   - {fileID: 21300000, guid: 532034b60974ec047bcbad5d2a3369c1, type: 2}
   - {fileID: 21300000, guid: 6cb49b7c0b50c6645b200d8b97d3c4e7, type: 2}
+  _shotsSprites:
+  - {fileID: 21300000, guid: aaaf067798b68a04ab427689b5ee76fc, type: 2}
+  - {fileID: 21300000, guid: 02d598d042bd6d44eb58a336bfcc7a85, type: 2}
+  - {fileID: 21300000, guid: c7f61d1edac8d7b4ba2e0b148146d288, type: 2}
+  _prefabPhysxBall: {fileID: 8634516277236128318, guid: 076fbaa81903b5742a8aa0a62c4162c4, type: 3}
 --- !u!114 &-5229208097970409411
 MonoBehaviour:
   m_ObjectHideFlags: 0

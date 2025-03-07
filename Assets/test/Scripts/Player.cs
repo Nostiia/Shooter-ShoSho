@@ -21,16 +21,20 @@ public class Player : NetworkBehaviour
     private int _hostAvatarIndex = 0;
     [SerializeField] private BasicSpawner _spawner;
 
+    private WeaponManager _weaponManager;
     private void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
         _forward = transform.up;
         _bodyRenderer = transform.Find("Body").GetComponent<SpriteRenderer>();
         _spawner = FindObjectOfType<BasicSpawner>();
+        _weaponManager = GetComponent<WeaponManager>();
     }
 
     public override void FixedUpdateNetwork()
     {
+        int _weaponIndex = _weaponManager.WeaponIndex();
+
         if (GetInput(out NetworkInputData data) && _canMove)
         {
             data.direction.Normalize();
@@ -52,6 +56,33 @@ public class Player : NetworkBehaviour
                       {
                           o.GetComponent<PhysxBall>().Init(10 * _forward);
                       });
+
+                    if (_weaponIndex == 1)
+                    {
+                        Vector3 directionUp = Quaternion.Euler(0, 0, 10) * _forward;  // Rotate +20 degrees
+                        Vector3 directionDown = Quaternion.Euler(0, 0, -10) * _forward; // Rotate -20 degrees
+
+                        // Spawn the upper projectile
+                        Runner.Spawn(_prefabPhysxBall,
+                          transform.position + directionUp,
+                          Quaternion.LookRotation(directionUp, Vector3.back),
+                          Object.InputAuthority,
+                          (runner, o) =>
+                          {
+                              o.GetComponent<PhysxBall>().Init(10 * directionUp);
+                          });
+
+                        // Spawn the lower projectile
+                        Runner.Spawn(_prefabPhysxBall,
+                          transform.position + directionDown,
+                          Quaternion.LookRotation(directionDown, Vector3.back),
+                          Object.InputAuthority,
+                          (runner, o) =>
+                          {
+                              o.GetComponent<PhysxBall>().Init(10 * directionDown);
+                          });
+                    }
+
                     SpawnedProjectile = !SpawnedProjectile;
                 }
             }
