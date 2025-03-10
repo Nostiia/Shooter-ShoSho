@@ -543,8 +543,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b4a98031a598e49418c6cb4e201034ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  zombiePrefab: {fileID: 7785510226281644063, guid: b68a88f7defee1a4a8711fd073132f4c, type: 3}
-  zombieCount: 5
+  _zombiePrefab: {fileID: 7785510226281644063, guid: b68a88f7defee1a4a8711fd073132f4c, type: 3}
+  _zombieCount: 5
 --- !u!4 &1680942615
 Transform:
   m_ObjectHideFlags: 0

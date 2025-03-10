@@ -5,14 +5,33 @@ using UnityEngine;
 
 public class ZombieManager : NetworkBehaviour
 {
-    public float speed = 0.5f;
-    private Vector2 target = Vector2.zero; // Center of scene
+    [SerializeField] private float _speed = 1f;
+    [Networked] private Vector2 Position { get; set; }
 
-    void Update()
+    public override void Spawned()
     {
-        if (HasStateAuthority) // Move only if we have authority
+        if (Object.HasStateAuthority) // Ensures only one instance controls movement
         {
-            transform.position = Vector2.MoveTowards(transform.position, target, speed * Time.deltaTime);
+            Position = transform.position;
         }
+    }
+    public override void FixedUpdateNetwork()
+    {
+ 
+        if (Object.HasStateAuthority)
+        {
+            Vector2 newPos = Vector2.MoveTowards(Position, Vector2.zero, _speed * Runner.DeltaTime);
+            Position = newPos;
+            Rpc_MoveZombie(newPos);
+        }
+
+        transform.position = Position;
+
+    }
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void Rpc_MoveZombie(Vector2 newPosition)
+    {
+        Position = newPosition;
+        transform.position = newPosition;
     }
 }

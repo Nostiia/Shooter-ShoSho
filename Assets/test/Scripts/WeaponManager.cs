@@ -1,52 +1,101 @@
 using Fusion;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class WeaponManager : NetworkBehaviour
 {
     [SerializeField] private Sprite[] _weaponSprites;
-    private int _hostWeaponIndex = 0;
+    [SerializeField] private PhysxBall _prefabPhysxBall;
     private SpriteRenderer _weaponRenderer;
 
-    [SerializeField] private Sprite[] _shotsSprites;
-    [SerializeField] private PhysxBall _prefabPhysxBall;
-    private SpriteRenderer _shotRenderer;
+    [Networked] private int _assignedWeaponIndex { get; set; }
+    private static List<int> _assignedWeapons = new List<int>();
+    private Dictionary<uint, int> _playerWeaponMap = new Dictionary<uint, int>();
 
     private void Awake()
     {
         _weaponRenderer = transform.Find("Weapon").GetComponent<SpriteRenderer>();
-        _shotRenderer = _prefabPhysxBall.transform.Find("Circle").GetComponent <SpriteRenderer>();
+    }
+
+    private void Start()
+    {
+        _assignedWeapons.Clear();
     }
 
     public override void Spawned()
     {
-        _hostWeaponIndex = Random.Range(0, _weaponSprites.Length);
-        _weaponRenderer.sprite = _weaponSprites[_hostWeaponIndex];
-        _shotRenderer.sprite = _shotsSprites[_hostWeaponIndex];
-    }
-
-    public int WeaponIndex()
-    {
-        return _hostWeaponIndex;
-    }
-
-    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority, HostMode = RpcHostMode.SourceIsHostPlayer)]
-    public void RPC_WeaponSpawner()
-    {
-        RPC_GenerateWeapon(_hostWeaponIndex);
-    }
-
-    [Rpc(RpcSources.StateAuthority, RpcTargets.All, HostMode = RpcHostMode.SourceIsServer)]
-    public void RPC_GenerateWeapon(int weaponNotIncludedIndex)
-    {
-        int _weaponIndex = Random.Range(0, _weaponSprites.Length);
-        while (_weaponIndex == _hostWeaponIndex)
+        if (Object.HasStateAuthority) // Host picks weapon first
         {
-            _weaponIndex = Random.Range(0, _weaponSprites.Length);
-        }
-        _weaponRenderer.sprite = _weaponSprites[_weaponIndex];
-        _shotRenderer.sprite = _shotsSprites [_weaponIndex];
+            uint playerId = Object.Id.Raw;
+            int newWeaponIndex = AssignWeapon(playerId);
+            _assignedWeaponIndex = newWeaponIndex;
 
+            RPC_SetWeapon(newWeaponIndex);
+        }
+
+        UpdateWeapon(_assignedWeaponIndex);
+    }
+
+    public int GetWeaponIndex()
+    {
+        return _assignedWeaponIndex;
+    }
+
+    public int AssignWeapon(uint playerId)
+    {
+        int newWeaponIndex = GetUniqueRandomWeaponIndex();
+        _playerWeaponMap[playerId] = newWeaponIndex; // Store assigned weapon
+
+        return newWeaponIndex;
+    }
+
+    public int GetUniqueRandomWeaponIndex()
+    {
+        List<int> availableWeapons = new List<int>();
+
+        // Create a list of available weapon indexes
+        for (int i = 0; i < _weaponSprites.Length; i++)
+        {
+            if (!_assignedWeapons.Contains(i)) // Only add unassigned weapons
+                availableWeapons.Add(i);
+        }
+
+        if (availableWeapons.Count == 0) // If all weapons are taken, allow duplicates
+        {
+            _assignedWeapons.Clear(); // Reset tracking if all weapons are assigned
+            for (int i = 0; i < _weaponSprites.Length; i++)
+                availableWeapons.Add(i);
+        }
+
+        int chosenIndex = availableWeapons[Random.Range(0, availableWeapons.Count)];
+        _assignedWeapons.Add(chosenIndex); // Mark it as taken
+
+        return chosenIndex;
+    }
+
+    private void UpdateWeapon(int weaponIndex)
+    {
+        _weaponRenderer.sprite = _weaponSprites[weaponIndex];
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    public void RPC_SetWeapon(int weaponIndex)
+    {
+        _assignedWeaponIndex = weaponIndex;
+        UpdateWeapon(_assignedWeaponIndex);
+    }
+
+    public Sprite GetWeaponSprite(int weaponIndex)
+    {
+        if (weaponIndex >= 0 && weaponIndex < _weaponSprites.Length)
+        {
+            return _weaponSprites[weaponIndex];
+        }
+        return null; 
+    }
+
+    public int WeaponSpritesLength()
+    {
+        return _weaponSprites.Length;
     }
 }
