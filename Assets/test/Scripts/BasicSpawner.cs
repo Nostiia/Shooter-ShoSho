@@ -100,7 +100,8 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
             WeaponManager weaponManager = networkPlayerObject.GetComponent<WeaponManager>();
             if (weaponManager != null)
             {
-                int uniqueWeaponIndex = weaponManager.GetUniqueRandomWeaponIndex();
+                uint playerId = (uint)player.RawEncoded;
+                int uniqueWeaponIndex = weaponManager.AssignWeapon(playerId);
                 weaponManager.RPC_SetWeapon(uniqueWeaponIndex);
             }
             foreach (var _player in FindObjectsOfType<Player>())

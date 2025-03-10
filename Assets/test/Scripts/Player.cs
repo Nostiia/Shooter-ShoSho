@@ -63,31 +63,30 @@ public class Player : NetworkBehaviour
                           o.GetComponent<PhysxBall>().Init(10 * _forward);
                       });
 
-                    if (_weaponManager.GetWeaponIndex() == 1)
-                    {
-                        Vector3 directionUp = Quaternion.Euler(0, 0, 10) * _forward;  // Rotate +20 degrees
-                        Vector3 directionDown = Quaternion.Euler(0, 0, -10) * _forward; // Rotate -20 degrees
+                    //if (_weaponManager.GetWeaponIndex() == 1)
+                    //{
+                    //    Vector3 directionUp = Quaternion.Euler(0, 0, 10) * _forward;  // Rotate +20 degrees
+                    //    Vector3 directionDown = Quaternion.Euler(0, 0, -10) * _forward; // Rotate -20 degrees
 
-                        // Spawn the upper projectile
-                        Runner.Spawn(_prefabPhysxBall,
-                          transform.position + directionUp,
-                          Quaternion.LookRotation(directionUp, Vector3.back),
-                          Object.InputAuthority,
-                          (runner, o) =>
-                          {
-                              o.GetComponent<PhysxBall>().Init(10 * directionUp);
-                          });
+                    //    Runner.Spawn(_prefabPhysxBall,
+                    //        transform.position + directionUp + new Vector3(0.1f, 0, 0), // Offset position slightly
+                    //        Quaternion.LookRotation(directionUp, Vector3.back),
+                    //        Object.InputAuthority,
+                    //        (runner, o) =>
+                    //        {
+                    //            o.GetComponent<PhysxBall>().Init(10 * directionUp);
+                    //        });
 
-                        // Spawn the lower projectile
-                        Runner.Spawn(_prefabPhysxBall,
-                          transform.position + directionDown,
-                          Quaternion.LookRotation(directionDown, Vector3.back),
-                          Object.InputAuthority,
-                          (runner, o) =>
-                          {
-                              o.GetComponent<PhysxBall>().Init(10 * directionDown);
-                          });
-                    }
+                    //    Runner.Spawn(_prefabPhysxBall,
+                    //      transform.position + directionDown + new Vector3(-0.1f, 0, 0), // Offset position slightly
+                    //      Quaternion.LookRotation(directionDown, Vector3.back),
+                    //      Object.InputAuthority,
+                    //      (runner, o) =>
+                    //      {
+                    //          o.GetComponent<PhysxBall>().Init(10 * directionDown);
+                    //      });
+
+                    //}
 
                     SpawnedProjectile = !SpawnedProjectile;
                 }

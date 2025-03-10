@@ -5,12 +5,13 @@ using UnityEngine;
 public class WeaponManager : NetworkBehaviour
 {
     [SerializeField] private Sprite[] _weaponSprites;
-    [SerializeField] private PhysxBall _prefabPhysxBall;
     private SpriteRenderer _weaponRenderer;
 
     [Networked] private int _assignedWeaponIndex { get; set; }
     private static List<int> _assignedWeapons = new List<int>();
     private Dictionary<uint, int> _playerWeaponMap = new Dictionary<uint, int>();
+
+    private int _hostWeaponIndex = -1;
 
     private void Awake()
     {
@@ -32,8 +33,10 @@ public class WeaponManager : NetworkBehaviour
 
             RPC_SetWeapon(newWeaponIndex);
         }
-
-        UpdateWeapon(_assignedWeaponIndex);
+        else
+        {
+            UpdateWeapon(_assignedWeaponIndex);
+        }
     }
 
     public int GetWeaponIndex()
@@ -44,8 +47,15 @@ public class WeaponManager : NetworkBehaviour
     public int AssignWeapon(uint playerId)
     {
         int newWeaponIndex = GetUniqueRandomWeaponIndex();
+        while (newWeaponIndex == _hostWeaponIndex)
+        {
+            newWeaponIndex = GetUniqueRandomWeaponIndex();
+        }
         _playerWeaponMap[playerId] = newWeaponIndex; // Store assigned weapon
-
+        if (HasStateAuthority)
+        {
+            _hostWeaponIndex = newWeaponIndex;
+        }
         return newWeaponIndex;
     }
 
@@ -60,7 +70,7 @@ public class WeaponManager : NetworkBehaviour
                 availableWeapons.Add(i);
         }
 
-        if (availableWeapons.Count == 0) // If all weapons are taken, allow duplicates
+        if (availableWeapons.Count <= 1) // If all weapons are taken, allow duplicates
         {
             _assignedWeapons.Clear(); // Reset tracking if all weapons are assigned
             for (int i = 0; i < _weaponSprites.Length; i++)
