@@ -20,14 +20,41 @@ public class ZombieManager : NetworkBehaviour
  
         if (Object.HasStateAuthority)
         {
-            Vector2 newPos = Vector2.MoveTowards(Position, Vector2.zero, _speed * Runner.DeltaTime);
+            Player closestPlayer = FindClosestPlayer();
+            if (closestPlayer == null) return;
+
+            Vector2 targetPosition = closestPlayer.transform.position;
+            Vector2 newPos = Vector2.MoveTowards(Position, targetPosition, _speed * Runner.DeltaTime);
+
             Position = newPos;
             Rpc_MoveZombie(newPos);
+
         }
 
         transform.position = Position;
-
     }
+
+    private Player FindClosestPlayer()
+    {
+        Player[] players = FindObjectsOfType<Player>();
+        if (players.Length == 0) return null;
+
+        Player closestPlayer = null;
+        float minDistance = float.MaxValue;
+
+        foreach (Player player in players)
+        {
+            float distance = Vector2.Distance(transform.position, player.transform.position);
+            if (distance < minDistance)
+            {
+                minDistance = distance;
+                closestPlayer = player;
+            }
+        }
+
+        return closestPlayer;
+    }
+
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     private void Rpc_MoveZombie(Vector2 newPosition)
     {
