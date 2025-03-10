@@ -97,14 +97,15 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
             NetworkObject networkPlayerObject = runner.Spawn(_playerPrefab, spawnPosition, Quaternion.identity, player);
             // Keep track of the player avatars for easy access
             _spawnedCharacters.Add(player, networkPlayerObject);
-
+            WeaponManager weaponManager = networkPlayerObject.GetComponent<WeaponManager>();
+            if (weaponManager != null)
+            {
+                int uniqueWeaponIndex = weaponManager.GetUniqueRandomWeaponIndex();
+                weaponManager.RPC_SetWeapon(uniqueWeaponIndex);
+            }
             foreach (var _player in FindObjectsOfType<Player>())
             {
                 _player.RPC_HostSelectAvatar();
-            }
-            foreach (var _weapon in FindObjectsOfType<WeaponManager>())
-            {
-                _weapon.RPC_WeaponSpawner();
             }
         }
     }

@@ -12,30 +12,36 @@ public class Player : NetworkBehaviour
 
     private Vector3 _forward;
     [Networked] private TickTimer _delay { get; set; }
-    [Networked] public bool _canMove { get; set; } = false;
+    [Networked] public bool CanMove { get; set; } = false;
     [Networked] public bool SpawnedProjectile { get; set; }
+
     private SpriteRenderer _bodyRenderer;
+    private SpriteRenderer _weaponRenderer;
+
     [SerializeField] private Sprite[] _avatarSprites;
     private int _selectedAvatarIndex;
+
     private ChangeDetector _changeDetector;
     private int _hostAvatarIndex = 0;
+    
     [SerializeField] private BasicSpawner _spawner;
 
     private WeaponManager _weaponManager;
+    private int _assignedWeaponIndex = 0;
+
     private void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
         _forward = transform.up;
         _bodyRenderer = transform.Find("Body").GetComponent<SpriteRenderer>();
+        _weaponRenderer = transform.Find("Weapon").GetComponent<SpriteRenderer>();
         _spawner = FindObjectOfType<BasicSpawner>();
         _weaponManager = GetComponent<WeaponManager>();
     }
 
     public override void FixedUpdateNetwork()
     {
-        int _weaponIndex = _weaponManager.WeaponIndex();
-
-        if (GetInput(out NetworkInputData data) && _canMove)
+        if (GetInput(out NetworkInputData data) && CanMove)
         {
             data.direction.Normalize();
             _rb.velocity = data.direction * Speed;
@@ -57,7 +63,7 @@ public class Player : NetworkBehaviour
                           o.GetComponent<PhysxBall>().Init(10 * _forward);
                       });
 
-                    if (_weaponIndex == 1)
+                    if (_weaponManager.GetWeaponIndex() == 1)
                     {
                         Vector3 directionUp = Quaternion.Euler(0, 0, 10) * _forward;  // Rotate +20 degrees
                         Vector3 directionDown = Quaternion.Euler(0, 0, -10) * _forward; // Rotate -20 degrees
@@ -98,15 +104,21 @@ public class Player : NetworkBehaviour
         {
             _bodyRenderer.sprite = _avatarSprites[_selectedAvatarIndex];
         }
+
+        uint playerId = Object.Id.Raw; 
+        _assignedWeaponIndex = _weaponManager.AssignWeapon(playerId);
+
+        _weaponRenderer.sprite = _weaponManager.GetWeaponSprite(_assignedWeaponIndex);
+
         if (_spawner.IsPlayerHost())
         {
             _hostAvatarIndex = _selectedAvatarIndex;
         }
     }
 
-    public void CanMove()
+    public void CouldMove()
     {
-        _canMove = true;
+        CanMove = true;
         RPC_AccessCanMove();
     }
 
@@ -127,7 +139,7 @@ public class Player : NetworkBehaviour
     [Rpc(RpcSources.StateAuthority, RpcTargets.All, HostMode = RpcHostMode.SourceIsServer)]
     public void RPC_CanMove(bool canMove)
     {
-        _canMove = canMove;
+        CanMove = canMove;
     }
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority, HostMode = RpcHostMode.SourceIsHostPlayer)]
