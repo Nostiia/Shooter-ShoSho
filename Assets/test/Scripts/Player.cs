@@ -26,17 +26,12 @@ public class Player : NetworkBehaviour
     
     [SerializeField] private BasicSpawner _spawner;
 
-    private WeaponManager _weaponManager;
-    private int _assignedWeaponIndex = 0;
-
     private void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
         _forward = transform.up;
         _bodyRenderer = transform.Find("Body").GetComponent<SpriteRenderer>();
-        _weaponRenderer = transform.Find("Weapon").GetComponent<SpriteRenderer>();
         _spawner = FindObjectOfType<BasicSpawner>();
-        _weaponManager = GetComponent<WeaponManager>();
     }
 
     public override void FixedUpdateNetwork()
@@ -103,11 +98,6 @@ public class Player : NetworkBehaviour
         {
             _bodyRenderer.sprite = _avatarSprites[_selectedAvatarIndex];
         }
-
-        uint playerId = Object.Id.Raw; 
-        _assignedWeaponIndex = _weaponManager.AssignWeapon(playerId);
-
-        _weaponRenderer.sprite = _weaponManager.GetWeaponSprite(_assignedWeaponIndex);
 
         if (_spawner.IsPlayerHost())
         {

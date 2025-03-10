@@ -25,33 +25,38 @@ public class WeaponManager : NetworkBehaviour
 
     public override void Spawned()
     {
-        if (Object.HasStateAuthority) // Host picks weapon first
+        if (Object.HasStateAuthority)
         {
-            uint playerId = Object.Id.Raw;
-            int newWeaponIndex = AssignWeapon(playerId);
-            _assignedWeaponIndex = newWeaponIndex;
-
-            RPC_SetWeapon(newWeaponIndex);
+            _assignedWeaponIndex = AssignWeapon();
         }
         else
         {
-            UpdateWeapon(_assignedWeaponIndex);
+            RPC_RequestWeaponIndex();
         }
+        UpdateWeapon(_assignedWeaponIndex);
+    }
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    public void RPC_RequestWeaponIndex()
+    {
+        RPC_SyncWeaponIndex(_assignedWeaponIndex);
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    public void RPC_SyncWeaponIndex(int weaponIndex)
+    {
+        _assignedWeaponIndex = weaponIndex;
+        UpdateWeapon(_assignedWeaponIndex);
     }
 
     public int GetWeaponIndex()
     {
-        return _assignedWeaponIndex;
+        return _assignedWeaponIndex; // Clients should request the index
     }
 
-    public int AssignWeapon(uint playerId)
+    public int AssignWeapon()
     {
         int newWeaponIndex = GetUniqueRandomWeaponIndex();
-        while (newWeaponIndex == _hostWeaponIndex)
-        {
-            newWeaponIndex = GetUniqueRandomWeaponIndex();
-        }
-        _playerWeaponMap[playerId] = newWeaponIndex; // Store assigned weapon
         if (HasStateAuthority)
         {
             _hostWeaponIndex = newWeaponIndex;
@@ -61,24 +66,7 @@ public class WeaponManager : NetworkBehaviour
 
     public int GetUniqueRandomWeaponIndex()
     {
-        List<int> availableWeapons = new List<int>();
-
-        // Create a list of available weapon indexes
-        for (int i = 0; i < _weaponSprites.Length; i++)
-        {
-            if (!_assignedWeapons.Contains(i)) // Only add unassigned weapons
-                availableWeapons.Add(i);
-        }
-
-        if (availableWeapons.Count <= 1) // If all weapons are taken, allow duplicates
-        {
-            _assignedWeapons.Clear(); // Reset tracking if all weapons are assigned
-            for (int i = 0; i < _weaponSprites.Length; i++)
-                availableWeapons.Add(i);
-        }
-
-        int chosenIndex = availableWeapons[Random.Range(0, availableWeapons.Count)];
-        _assignedWeapons.Add(chosenIndex); // Mark it as taken
+        int chosenIndex = Random.Range(0, _weaponSprites.Length);
 
         return chosenIndex;
     }
@@ -88,13 +76,6 @@ public class WeaponManager : NetworkBehaviour
         _weaponRenderer.sprite = _weaponSprites[weaponIndex];
     }
 
-    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-    public void RPC_SetWeapon(int weaponIndex)
-    {
-        _assignedWeaponIndex = weaponIndex;
-        UpdateWeapon(_assignedWeaponIndex);
-    }
-
     public Sprite GetWeaponSprite(int weaponIndex)
     {
         if (weaponIndex >= 0 && weaponIndex < _weaponSprites.Length)
@@ -102,10 +83,5 @@ public class WeaponManager : NetworkBehaviour
             return _weaponSprites[weaponIndex];
         }
         return null; 
-    }
-
-    public int WeaponSpritesLength()
-    {
-        return _weaponSprites.Length;
     }
 }
