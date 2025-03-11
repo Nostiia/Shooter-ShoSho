@@ -8,19 +8,13 @@ public class WeaponManager : NetworkBehaviour
     private SpriteRenderer _weaponRenderer;
 
     [Networked] private int _assignedWeaponIndex { get; set; }
-    private static List<int> _assignedWeapons = new List<int>();
-    private Dictionary<uint, int> _playerWeaponMap = new Dictionary<uint, int>();
+    [Networked] private int _hostWeaponIndex { get; set; }
 
-    private int _hostWeaponIndex = -1;
+    private static List<int> _assignedWeapons = new List<int>();
 
     private void Awake()
     {
         _weaponRenderer = transform.Find("Weapon").GetComponent<SpriteRenderer>();
-    }
-
-    private void Start()
-    {
-        _assignedWeapons.Clear();
     }
 
     public override void Spawned()
@@ -28,13 +22,13 @@ public class WeaponManager : NetworkBehaviour
         if (Object.HasStateAuthority)
         {
             _assignedWeaponIndex = AssignWeapon();
+            _hostWeaponIndex = _assignedWeaponIndex; 
+            _assignedWeapons.Add(_assignedWeaponIndex);
+
+            RPC_SyncWeaponIndex(_hostWeaponIndex);
         }
         else
         {
-            while (_assignedWeaponIndex == _hostWeaponIndex)
-            {
-                _assignedWeaponIndex = GetUniqueRandomWeaponIndex();
-            }
             RPC_RequestWeaponIndex();
         }
         UpdateWeapon(_assignedWeaponIndex);
@@ -43,14 +37,24 @@ public class WeaponManager : NetworkBehaviour
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     public void RPC_RequestWeaponIndex()
     {
-        RPC_SyncWeaponIndex(_assignedWeaponIndex);
+        RPC_SyncWeaponIndex(_hostWeaponIndex);
     }
 
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-    public void RPC_SyncWeaponIndex(int weaponIndex)
+    public void RPC_SyncWeaponIndex(int hostWeaponIndex)
     {
-        _assignedWeaponIndex = weaponIndex;
-        UpdateWeapon(_assignedWeaponIndex);
+        _hostWeaponIndex = hostWeaponIndex;
+
+        if (!Object.HasStateAuthority)
+        {
+            do
+            {
+                _assignedWeaponIndex = GetUniqueRandomWeaponIndex();
+            }
+            while (_assignedWeaponIndex == _hostWeaponIndex);  // Ensure different weapon from host
+        }
+
+        //UpdateWeapon(_assignedWeaponIndex);
     }
 
     public int GetWeaponIndex()
@@ -61,17 +65,25 @@ public class WeaponManager : NetworkBehaviour
     public int AssignWeapon()
     {
         int newWeaponIndex = GetUniqueRandomWeaponIndex();
-        if (HasStateAuthority)
-        {
-            _hostWeaponIndex = newWeaponIndex;
-        }
         return newWeaponIndex;
     }
 
     public int GetUniqueRandomWeaponIndex()
     {
-        int chosenIndex = Random.Range(0, _weaponSprites.Length);
+        if (_assignedWeapons.Count >= _weaponSprites.Length)
+        {
+            Debug.LogWarning("All weapons assigned! Restarting selection.");
+            _assignedWeapons.Clear();
+        }
 
+        int chosenIndex;
+        do
+        {
+            chosenIndex = Random.Range(0, _weaponSprites.Length);
+        }
+        while (_assignedWeapons.Contains(chosenIndex));
+
+        _assignedWeapons.Add(chosenIndex); 
         return chosenIndex;
     }
 

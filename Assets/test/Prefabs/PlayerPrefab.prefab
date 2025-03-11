@@ -26,8 +26,8 @@ Transform:
   m_GameObject: {fileID: 1563756711289816513}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.15, y: -0.2, z: -0.2}
-  m_LocalScale: {x: 0.5, y: 0.5, z: 0.2}
+  m_LocalPosition: {x: 0, y: -0.2, z: -0.1}
+  m_LocalScale: {x: 0.7, y: 0.7, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1913983581833323052}
@@ -183,6 +183,7 @@ GameObject:
   - component: {fileID: 1250274510086666685}
   - component: {fileID: 8615342777828090549}
   - component: {fileID: 8588568262067982311}
+  - component: {fileID: -15947083249254137}
   m_Layer: 0
   m_Name: PlayerPrefab
   m_TagString: Untagged
@@ -227,6 +228,7 @@ MonoBehaviour:
   - {fileID: -7224246823203876013}
   - {fileID: -5229208097970409411}
   - {fileID: 8615342777828090549}
+  - {fileID: -15947083249254137}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &-7224246823203876013
 MonoBehaviour:
@@ -244,7 +246,6 @@ MonoBehaviour:
   - {fileID: 21300000, guid: ef0ccda73ce993b4e97ce5f64b608349, type: 2}
   - {fileID: 21300000, guid: 532034b60974ec047bcbad5d2a3369c1, type: 2}
   - {fileID: 21300000, guid: 6cb49b7c0b50c6645b200d8b97d3c4e7, type: 2}
-  _prefabPhysxBall: {fileID: 8634516277236128318, guid: 076fbaa81903b5742a8aa0a62c4162c4, type: 3}
 --- !u!114 &-5229208097970409411
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -353,3 +354,17 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &-15947083249254137
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7589151593276940510}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c8e78721c4c4db41867076978b66861, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  killsPrefab: {fileID: 9020003096425463692, guid: dafc40e2fa5c5a140b7e37151ee0d4db, type: 3}
+  _killsText: {fileID: 7642278570526479020, guid: dafc40e2fa5c5a140b7e37151ee0d4db, type: 3}

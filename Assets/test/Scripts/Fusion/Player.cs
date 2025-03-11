@@ -49,6 +49,7 @@ public class Player : NetworkBehaviour
 
             if (HasStateAuthority && _delay.ExpiredOrNotRunning(Runner))
             {
+                
                 if (data.buttons.IsSet(NetworkInputData.MOUSEBUTTON1))
                 {
                     _delay = TickTimer.CreateFromSeconds(Runner, 0.5f);
@@ -58,10 +59,35 @@ public class Player : NetworkBehaviour
                       Object.InputAuthority,
                       (runner, o) =>
                       {
-                          o.GetComponent<PhysxBall>().Init(10 * _forward);
+                          o.GetComponent<PhysxBall>().Init(10 * _forward, this);
                       });
+                    
+                    if (_weaponManager.GetWeaponIndex() == 1)
+                    {
+                        Debug.Log("Drobovik");
+
+                        Vector3 rotatedForwardLeft = Quaternion.Euler(0, 0, 10) * _forward;
+                        Vector3 rotatedForwardRight = Quaternion.Euler(0, 0, -10) * _forward;
+
+                        Runner.Spawn(_prefabPhysxBall,
+                          transform.position + rotatedForwardLeft,
+                          Quaternion.LookRotation(rotatedForwardLeft),
+                          Object.InputAuthority,
+                          (runner, o) =>
+                          {
+                            o.GetComponent<PhysxBall>().Init(10 * rotatedForwardLeft, this);
+                          });
+                        Runner.Spawn(_prefabPhysxBall,
+                          transform.position + rotatedForwardRight,
+                          Quaternion.LookRotation(rotatedForwardRight),
+                          Object.InputAuthority,
+                          (runner, o) =>
+                          {
+                            o.GetComponent<PhysxBall>().Init(10 * rotatedForwardRight, this);
+                          });
+                    }
                     SpawnedProjectile = !SpawnedProjectile;
-                }
+                }               
             }
         }
     }

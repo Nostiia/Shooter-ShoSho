@@ -11,6 +11,8 @@ public class ZombieDeathManager : NetworkBehaviour
     private Rigidbody2D _rb;
     private bool _isDead = false;
 
+    private KillsCount _playerKillsCount;
+
     private void Start()
     {
         _rb = GetComponent<Rigidbody2D>();
@@ -18,7 +20,7 @@ public class ZombieDeathManager : NetworkBehaviour
     }
 
     // Method to handle getting hit
-    public void TakeDamage(int damage)
+    public void TakeDamage(int damage, Player player)
     {
         Debug.Log($"Zombie {gameObject.name} took {damage} damage!");
 
@@ -27,22 +29,35 @@ public class ZombieDeathManager : NetworkBehaviour
             Health -= damage;
             if (Health <= 0)
             {
-                RPC_Die();
+                Debug.Log("inside if Health");
+                _isDead = true;
+                RPC_Die(player);
             }
         }
     }
 
+    public bool IsZombieDead()
+    {
+        return _isDead;
+    }
+
 
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-    private void RPC_Die()
+    private void RPC_Die(Player player)
     {
-        if (_isDead) return; 
         _isDead = true;
 
         if (_zombieRenderer != null && _deathZombie != null)
         {
             _zombieRenderer.sprite = _deathZombie;
         }
+
+        KillsCount kc = player.GetComponent<KillsCount>();
+        if (kc != null)
+        {
+            kc.IncrementKills();
+        }
+
         ZombieManager zm = transform.GetComponent<ZombieManager>();
         zm.OnZombieDeath();
         StartCoroutine(DelayedDespawn());

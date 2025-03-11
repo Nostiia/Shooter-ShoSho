@@ -8,14 +8,38 @@ public class PhysxBall : NetworkBehaviour
     private Rigidbody2D _rb;
     private Collider2D _collider;
 
+    private Player _player;
+
     private void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
-        _collider = GetComponent<Collider2D>(); 
+        _collider = GetComponent<Collider2D>();
+        foreach (PhysxBall projectile in FindObjectsOfType<PhysxBall>())
+        {
+            if (projectile != this)
+            {
+                Physics2D.IgnoreCollision(_collider, projectile.GetComponent<Collider2D>());
+            }
+        }
+        StartCoroutine(IgnoreCollisionsAfterSpawn());
     }
 
-    public void Init(Vector3 forward)
+    private System.Collections.IEnumerator IgnoreCollisionsAfterSpawn()
     {
+        yield return new WaitForSeconds(0.1f);  // Small delay to ensure all objects are initialized
+
+        foreach (PhysxBall projectile in FindObjectsOfType<PhysxBall>())
+        {
+            if (projectile != this)
+            {
+                Physics2D.IgnoreCollision(_collider, projectile._collider);
+            }
+        }
+    }
+
+    public void Init(Vector3 forward, Player player)
+    {
+        _player = player;
         Life = TickTimer.CreateFromSeconds(Runner, 5.0f);
         _rb.velocity = forward;
     }
@@ -24,6 +48,7 @@ public class PhysxBall : NetworkBehaviour
     {
         if (Life.Expired(Runner) && Object.HasStateAuthority)
         {
+            Debug.Log("Despawning projectile...");
             Runner.Despawn(Object);
         }
     }
@@ -34,27 +59,28 @@ public class PhysxBall : NetworkBehaviour
 
         ZombieDeathManager zombie = collision.gameObject.GetComponent<ZombieDeathManager>();
 
-        if (zombie != null)
+        if (zombie != null && !zombie.IsZombieDead())
         {
             Debug.Log("Hit a zombie: " + collision.gameObject.name);
 
-            if (Object.HasStateAuthority)
+            if (Object != null && Object.HasStateAuthority) 
             {
-                zombie.TakeDamage(Damage);
+                zombie.TakeDamage(Damage, _player);
             }
-            else
+            else if (zombie.Object != null) 
             {
-                // Send an RPC to the server to apply damage
                 RPC_RequestDamage(zombie.Object, Damage);
             }
         }
 
-        if (Object.HasStateAuthority)
+         //Prevent null reference before despawning
+        if (Object != null && Object.HasStateAuthority)
         {
             Debug.Log("Despawning projectile...");
             Runner.Despawn(Object);
         }
     }
+
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     private void RPC_RequestDamage(NetworkObject zombieObject, int damage)
@@ -64,7 +90,7 @@ public class PhysxBall : NetworkBehaviour
             ZombieDeathManager zombie = zombieObject.GetComponent<ZombieDeathManager>();
             if (zombie != null)
             {
-                zombie.TakeDamage(damage);
+                zombie.TakeDamage(damage, _player);
             }
         }
     }
