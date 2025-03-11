@@ -75,8 +75,6 @@ public class Player : NetworkBehaviour
                     
                     if (_weaponManager.GetWeaponIndex() == 1)
                     {
-                        Debug.Log("Drobovik");
-
                         Vector3 rotatedForwardLeft = Quaternion.Euler(0, 0, 10) * _forward;
                         Vector3 rotatedForwardRight = Quaternion.Euler(0, 0, -10) * _forward;
 

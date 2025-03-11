@@ -10,6 +10,7 @@ public class PhysxBall : NetworkBehaviour
 
     private Player _player;
     private int _weaponIndex = -1;
+    private float _weaponLifetime = 6f;
 
     private void Awake()
     {
@@ -41,26 +42,28 @@ public class PhysxBall : NetworkBehaviour
     public void Init(Vector3 forward, Player player)
     {
         _player = player;
-        Life = TickTimer.CreateFromSeconds(Runner, 5.0f);
+        SetWeaponProperties();
+        Debug.Log($"{_weaponLifetime}");
+        Life = TickTimer.CreateFromSeconds(Runner, _weaponLifetime);
         _rb.velocity = forward;
-        SetWeaponDamage();
-
-
     }
 
-    private void SetWeaponDamage()
+    private void SetWeaponProperties()
     {
         _weaponIndex = _player.GetPlayersWeaponIndex();
         switch (_weaponIndex)
         {
             case 0:
                 Damage = 3;
+                _weaponLifetime = 0.2f;
                 break;
             case 1:
                 Damage = 2;
+                _weaponLifetime = 0.5f;
                 break;
             case 2:
                 Damage = 1;
+                _weaponLifetime = 2.0f;
                 break;
         }
     }
