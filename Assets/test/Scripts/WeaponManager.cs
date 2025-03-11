@@ -31,6 +31,10 @@ public class WeaponManager : NetworkBehaviour
         }
         else
         {
+            while (_assignedWeaponIndex == _hostWeaponIndex)
+            {
+                _assignedWeaponIndex = GetUniqueRandomWeaponIndex();
+            }
             RPC_RequestWeaponIndex();
         }
         UpdateWeapon(_assignedWeaponIndex);
@@ -51,7 +55,7 @@ public class WeaponManager : NetworkBehaviour
 
     public int GetWeaponIndex()
     {
-        return _assignedWeaponIndex; // Clients should request the index
+        return _assignedWeaponIndex; 
     }
 
     public int AssignWeapon()
