@@ -28,6 +28,9 @@ public class Player : NetworkBehaviour
 
     private WeaponManager _weaponManager;
     private AmmoCount _ammoCounter;
+    private HPCount _hpCounter;
+
+    private bool _isDead = false;
 
     private void Awake()
     {
@@ -37,11 +40,15 @@ public class Player : NetworkBehaviour
         _spawner = FindObjectOfType<BasicSpawner>();
         _weaponManager = transform.GetComponent<WeaponManager>();
         _ammoCounter = transform.GetComponent<AmmoCount>();
+        _hpCounter = GetComponent<HPCount>();
     }
 
     public override void FixedUpdateNetwork()
     {
-        if (GetInput(out NetworkInputData data) && CanMove)
+        _isDead = _hpCounter.IsPlayerDied();
+
+
+        if (GetInput(out NetworkInputData data) && CanMove && !_isDead)
         {
             data.direction.Normalize();
             _rb.velocity = data.direction * Speed;
@@ -127,6 +134,11 @@ public class Player : NetworkBehaviour
         {
             _hostAvatarIndex = avatarindex;
         }
+    }
+
+    public bool IsPlayerAlive()
+    {
+        return !_isDead;
     }
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority, HostMode = RpcHostMode.SourceIsHostPlayer)]
