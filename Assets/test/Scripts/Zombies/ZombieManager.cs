@@ -8,6 +8,8 @@ public class ZombieManager : NetworkBehaviour
     [SerializeField] private float _speed = 1f;
     [Networked] private Vector2 Position { get; set; }
 
+    private bool _isDead = false;
+
     public override void Spawned()
     {
         if (Object.HasStateAuthority) // Ensures only one instance controls movement
@@ -17,7 +19,8 @@ public class ZombieManager : NetworkBehaviour
     }
     public override void FixedUpdateNetwork()
     {
- 
+        if (_isDead) return;
+
         if (Object.HasStateAuthority)
         {
             Player closestPlayer = FindClosestPlayer();
@@ -37,6 +40,7 @@ public class ZombieManager : NetworkBehaviour
     private Player FindClosestPlayer()
     {
         Player[] players = FindObjectsOfType<Player>();
+
         if (players.Length == 0) return null;
 
         Player closestPlayer = null;
@@ -44,11 +48,14 @@ public class ZombieManager : NetworkBehaviour
 
         foreach (Player player in players)
         {
-            float distance = Vector2.Distance(transform.position, player.transform.position);
-            if (distance < minDistance)
+            if (player.IsPlayerAlive())
             {
-                minDistance = distance;
-                closestPlayer = player;
+                float distance = Vector2.Distance(transform.position, player.transform.position);
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    closestPlayer = player;
+                }
             }
         }
 
@@ -60,5 +67,18 @@ public class ZombieManager : NetworkBehaviour
     {
         Position = newPosition;
         transform.position = newPosition;
+    }
+
+    public void OnZombieDeath()
+    {
+        if (Object.HasStateAuthority) 
+        {
+            _isDead = true;
+        }
+    }
+
+    public bool IsZombieDeath()
+    {
+        return _isDead;
     }
 }

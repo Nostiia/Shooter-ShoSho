@@ -27,21 +27,30 @@ public class Player : NetworkBehaviour
     [SerializeField] private BasicSpawner _spawner;
 
     private WeaponManager _weaponManager;
-    private int _assignedWeaponIndex = 0;
+    private AmmoCount _ammoCounter;
+    private HPCount _hpCounter;
+
+    private bool _isDead = false;
+    private int _weaponIndex = -1;
 
     private void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
         _forward = transform.up;
         _bodyRenderer = transform.Find("Body").GetComponent<SpriteRenderer>();
-        _weaponRenderer = transform.Find("Weapon").GetComponent<SpriteRenderer>();
         _spawner = FindObjectOfType<BasicSpawner>();
-        _weaponManager = GetComponent<WeaponManager>();
+        _weaponManager = transform.GetComponent<WeaponManager>();
+        _ammoCounter = transform.GetComponent<AmmoCount>();
+        _hpCounter = GetComponent<HPCount>();
+        
     }
 
     public override void FixedUpdateNetwork()
     {
-        if (GetInput(out NetworkInputData data) && CanMove)
+        _isDead = _hpCounter.IsPlayerDied();
+
+
+        if (GetInput(out NetworkInputData data) && CanMove && !_isDead)
         {
             data.direction.Normalize();
             _rb.velocity = data.direction * Speed;
@@ -49,8 +58,9 @@ public class Player : NetworkBehaviour
             if (data.direction.sqrMagnitude > 0)
                 _forward = data.direction;
 
-            if (HasStateAuthority && _delay.ExpiredOrNotRunning(Runner))
+            if (HasStateAuthority && _delay.ExpiredOrNotRunning(Runner) && _ammoCounter.GetCurrentAmmo() > 0)
             {
+                _weaponIndex = _weaponManager.GetWeaponIndex();
                 if (data.buttons.IsSet(NetworkInputData.MOUSEBUTTON1))
                 {
                     _delay = TickTimer.CreateFromSeconds(Runner, 0.5f);
@@ -60,37 +70,38 @@ public class Player : NetworkBehaviour
                       Object.InputAuthority,
                       (runner, o) =>
                       {
-                          o.GetComponent<PhysxBall>().Init(10 * _forward);
+                          o.GetComponent<PhysxBall>().Init(10 * _forward, this);
                       });
-
+                    
                     if (_weaponManager.GetWeaponIndex() == 1)
                     {
-                        Vector3 directionUp = Quaternion.Euler(0, 0, 10) * _forward;  // Rotate +20 degrees
-                        Vector3 directionDown = Quaternion.Euler(0, 0, -10) * _forward; // Rotate -20 degrees
+                        Vector3 rotatedForwardLeft = Quaternion.Euler(0, 0, 10) * _forward;
+                        Vector3 rotatedForwardRight = Quaternion.Euler(0, 0, -10) * _forward;
 
-                        // Spawn the upper projectile
                         Runner.Spawn(_prefabPhysxBall,
-                          transform.position + directionUp,
-                          Quaternion.LookRotation(directionUp, Vector3.back),
+                          transform.position + rotatedForwardLeft,
+                          Quaternion.LookRotation(rotatedForwardLeft),
                           Object.InputAuthority,
                           (runner, o) =>
                           {
-                              o.GetComponent<PhysxBall>().Init(10 * directionUp);
+                            o.GetComponent<PhysxBall>().Init(10 * rotatedForwardLeft, this);
                           });
-
-                        // Spawn the lower projectile
                         Runner.Spawn(_prefabPhysxBall,
-                          transform.position + directionDown,
-                          Quaternion.LookRotation(directionDown, Vector3.back),
+                          transform.position + rotatedForwardRight,
+                          Quaternion.LookRotation(rotatedForwardRight),
                           Object.InputAuthority,
                           (runner, o) =>
                           {
-                              o.GetComponent<PhysxBall>().Init(10 * directionDown);
+                            o.GetComponent<PhysxBall>().Init(10 * rotatedForwardRight, this);
                           });
                     }
-
+                    
+                    if (_ammoCounter != null)
+                    {
+                        _ammoCounter.DecrementAmmo();
+                    }
                     SpawnedProjectile = !SpawnedProjectile;
-                }
+                }               
             }
         }
     }
@@ -104,11 +115,6 @@ public class Player : NetworkBehaviour
         {
             _bodyRenderer.sprite = _avatarSprites[_selectedAvatarIndex];
         }
-
-        uint playerId = Object.Id.Raw; 
-        _assignedWeaponIndex = _weaponManager.AssignWeapon(playerId);
-
-        _weaponRenderer.sprite = _weaponManager.GetWeaponSprite(_assignedWeaponIndex);
 
         if (_spawner.IsPlayerHost())
         {
@@ -128,6 +134,16 @@ public class Player : NetworkBehaviour
         {
             _hostAvatarIndex = avatarindex;
         }
+    }
+
+    public bool IsPlayerAlive()
+    {
+        return !_isDead;
+    }
+
+    public int GetPlayersWeaponIndex()
+    {
+        return _weaponIndex;
     }
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority, HostMode = RpcHostMode.SourceIsHostPlayer)]
