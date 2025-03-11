@@ -249,8 +249,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _weaponSprites:
   - {fileID: 21300000, guid: ef0ccda73ce993b4e97ce5f64b608349, type: 2}
-  - {fileID: 21300000, guid: 532034b60974ec047bcbad5d2a3369c1, type: 2}
   - {fileID: 21300000, guid: 6cb49b7c0b50c6645b200d8b97d3c4e7, type: 2}
+  - {fileID: 21300000, guid: 532034b60974ec047bcbad5d2a3369c1, type: 2}
 --- !u!114 &-5229208097970409411
 MonoBehaviour:
   m_ObjectHideFlags: 0

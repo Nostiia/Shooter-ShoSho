@@ -4,11 +4,12 @@ using Fusion;
 public class PhysxBall : NetworkBehaviour
 {
     [Networked] private TickTimer Life { get; set; }
-    public int Damage { get; set; } = 1;
+    public int Damage { get; set; } = 0;
     private Rigidbody2D _rb;
     private Collider2D _collider;
 
     private Player _player;
+    private int _weaponIndex = -1;
 
     private void Awake()
     {
@@ -42,6 +43,26 @@ public class PhysxBall : NetworkBehaviour
         _player = player;
         Life = TickTimer.CreateFromSeconds(Runner, 5.0f);
         _rb.velocity = forward;
+        SetWeaponDamage();
+
+
+    }
+
+    private void SetWeaponDamage()
+    {
+        _weaponIndex = _player.GetPlayersWeaponIndex();
+        switch (_weaponIndex)
+        {
+            case 0:
+                Damage = 3;
+                break;
+            case 1:
+                Damage = 2;
+                break;
+            case 2:
+                Damage = 1;
+                break;
+        }
     }
 
     public override void FixedUpdateNetwork()
@@ -73,7 +94,6 @@ public class PhysxBall : NetworkBehaviour
             }
         }
 
-         //Prevent null reference before despawning
         if (Object != null && Object.HasStateAuthority)
         {
             Debug.Log("Despawning projectile...");

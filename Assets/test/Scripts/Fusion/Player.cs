@@ -31,6 +31,7 @@ public class Player : NetworkBehaviour
     private HPCount _hpCounter;
 
     private bool _isDead = false;
+    private int _weaponIndex = -1;
 
     private void Awake()
     {
@@ -41,6 +42,7 @@ public class Player : NetworkBehaviour
         _weaponManager = transform.GetComponent<WeaponManager>();
         _ammoCounter = transform.GetComponent<AmmoCount>();
         _hpCounter = GetComponent<HPCount>();
+        
     }
 
     public override void FixedUpdateNetwork()
@@ -58,7 +60,7 @@ public class Player : NetworkBehaviour
 
             if (HasStateAuthority && _delay.ExpiredOrNotRunning(Runner) && _ammoCounter.GetCurrentAmmo() > 0)
             {
-                
+                _weaponIndex = _weaponManager.GetWeaponIndex();
                 if (data.buttons.IsSet(NetworkInputData.MOUSEBUTTON1))
                 {
                     _delay = TickTimer.CreateFromSeconds(Runner, 0.5f);
@@ -139,6 +141,11 @@ public class Player : NetworkBehaviour
     public bool IsPlayerAlive()
     {
         return !_isDead;
+    }
+
+    public int GetPlayersWeaponIndex()
+    {
+        return _weaponIndex;
     }
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority, HostMode = RpcHostMode.SourceIsHostPlayer)]
