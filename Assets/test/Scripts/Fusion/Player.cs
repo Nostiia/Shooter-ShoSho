@@ -27,6 +27,7 @@ public class Player : NetworkBehaviour
     [SerializeField] private BasicSpawner _spawner;
 
     private WeaponManager _weaponManager;
+    private AmmoCount _ammoCounter;
 
     private void Awake()
     {
@@ -35,6 +36,7 @@ public class Player : NetworkBehaviour
         _bodyRenderer = transform.Find("Body").GetComponent<SpriteRenderer>();
         _spawner = FindObjectOfType<BasicSpawner>();
         _weaponManager = transform.GetComponent<WeaponManager>();
+        _ammoCounter = transform.GetComponent<AmmoCount>();
     }
 
     public override void FixedUpdateNetwork()
@@ -47,7 +49,7 @@ public class Player : NetworkBehaviour
             if (data.direction.sqrMagnitude > 0)
                 _forward = data.direction;
 
-            if (HasStateAuthority && _delay.ExpiredOrNotRunning(Runner))
+            if (HasStateAuthority && _delay.ExpiredOrNotRunning(Runner) && _ammoCounter.GetCurrentAmmo() > 0)
             {
                 
                 if (data.buttons.IsSet(NetworkInputData.MOUSEBUTTON1))
@@ -85,6 +87,11 @@ public class Player : NetworkBehaviour
                           {
                             o.GetComponent<PhysxBall>().Init(10 * rotatedForwardRight, this);
                           });
+                    }
+                    
+                    if (_ammoCounter != null)
+                    {
+                        _ammoCounter.DecrementAmmo();
                     }
                     SpawnedProjectile = !SpawnedProjectile;
                 }               

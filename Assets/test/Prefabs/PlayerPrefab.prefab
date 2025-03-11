@@ -184,6 +184,7 @@ GameObject:
   - component: {fileID: 8615342777828090549}
   - component: {fileID: 8588568262067982311}
   - component: {fileID: -15947083249254137}
+  - component: {fileID: 5327311247517437301}
   m_Layer: 0
   m_Name: PlayerPrefab
   m_TagString: Untagged
@@ -229,6 +230,7 @@ MonoBehaviour:
   - {fileID: -5229208097970409411}
   - {fileID: 8615342777828090549}
   - {fileID: -15947083249254137}
+  - {fileID: 5327311247517437301}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &-7224246823203876013
 MonoBehaviour:
@@ -366,5 +368,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c8e78721c4c4db41867076978b66861, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  killsPrefab: {fileID: 9020003096425463692, guid: dafc40e2fa5c5a140b7e37151ee0d4db, type: 3}
-  _killsText: {fileID: 7642278570526479020, guid: dafc40e2fa5c5a140b7e37151ee0d4db, type: 3}
+--- !u!114 &5327311247517437301
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7589151593276940510}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35d4f7b2d7516754598c90e118f93c93, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
