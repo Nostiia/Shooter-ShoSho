@@ -10,6 +10,7 @@ public class TimerManager : NetworkBehaviour
     private TMP_Text _timerText;
     [SerializeField] private EnemyAppearenceManager _zombieManager;
     [SerializeField] private EnemyAppearenceManager _sceletonManager;
+    [SerializeField] private EnemyAppearenceManager _strongZombieManager;
     private bool _isRelaxTime = false;
     private int _lastSpawnCheck = -1; // Track last spawn interval
 
@@ -17,7 +18,6 @@ public class TimerManager : NetworkBehaviour
     private int _currentRelaxTime = 0;
     private readonly int[] _waveDurations = { 30, 40, 60 };
     private readonly int[] _relaxDurations = { 10, 20, 30 };
-    private bool _playersAlive = true;
 
     public override void Spawned()
     {
@@ -37,7 +37,7 @@ public class TimerManager : NetworkBehaviour
     {
         if (_currentWave >= _waveDurations.Length)
         {
-            GameOver();
+            GameOver(false);
             return;
         }
 
@@ -74,18 +74,19 @@ public class TimerManager : NetworkBehaviour
                         switch (_currentWave)
                         {
                             case 0:
-                                Debug.Log(_currentWave);
                                 _zombieManager?.ZombieSpawned();
                                 _lastSpawnCheck = remainingTime;
                                 break;
                             case 1:
-                                Debug.Log(_currentWave);
                                 _zombieManager?.ZombieSpawned();
                                 _sceletonManager?.ZombieSpawned();
                                 _lastSpawnCheck = remainingTime;
                                 break;
                             case 2:
-                                Debug.Log(_currentWave);
+                                _zombieManager?.ZombieSpawned();
+                                _sceletonManager?.ZombieSpawned();
+                                _strongZombieManager?.ZombieSpawned();
+                                _lastSpawnCheck = remainingTime;
                                 break;
                         }
                     }
@@ -96,7 +97,7 @@ public class TimerManager : NetworkBehaviour
             {
                 // Stop timer when both players are dead
                 Debug.Log("Both players are dead. Stopping the timer.");
-                GameOver();
+                GameOver(true);
             }
         }
         else
@@ -135,7 +136,7 @@ public class TimerManager : NetworkBehaviour
         return allPlayersDead;
     }
 
-    public void GameOver()
+    public void GameOver(bool isPlayersAlive)
     {
         Debug.Log("Game Over.");
         // Show panel with results.

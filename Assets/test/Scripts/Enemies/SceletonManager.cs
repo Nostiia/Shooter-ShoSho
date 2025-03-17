@@ -47,6 +47,15 @@ public class SkeletonManager : NetworkBehaviour
             return;
         }
 
+        //Rotate the skeleton
+        Vector2 directionToPlayer = closestPlayer.transform.position - transform.position;
+        if (Vector2.Dot(transform.right, directionToPlayer) < 0)
+        {
+            transform.rotation = Quaternion.Euler(0, 180, 0);
+            Rpc_RotateSkeleton();
+
+        }
+
         // Move the skeleton
         Vector2 newPos = (Vector2)transform.position + moveDirection * _speed * Runner.DeltaTime;
         Position = newPos;
@@ -97,9 +106,17 @@ public class SkeletonManager : NetworkBehaviour
     }
 
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void Rpc_RotateSkeleton()
+    {
+        transform.rotation = Quaternion.Euler(0, 180, 0);
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     private void Rpc_SpawnEnergyBall(Vector2 spawnPosition, Vector2 targetPosition)
     {
-        GameObject ball = Instantiate(_skeletonBallPrefab, spawnPosition, Quaternion.identity);
+        float playerDirection = targetPosition.x - spawnPosition.x;
+        Vector2 spawnOffset = playerDirection < 0 ? new Vector2(-1, 0) : new Vector2(1, 0); // Offset for left or right
+        GameObject ball = Instantiate(_skeletonBallPrefab, spawnPosition + spawnOffset, Quaternion.identity);
         ball.GetComponent<SceletonBall>().Initialize(targetPosition);
     }
 

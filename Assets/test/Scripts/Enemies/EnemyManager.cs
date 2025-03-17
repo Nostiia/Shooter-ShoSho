@@ -6,6 +6,7 @@ using UnityEngine;
 public class EnemyManager : NetworkBehaviour
 {
     [SerializeField] private float _speed = 0.5f;
+    [SerializeField] private int _damage = 3;
     [Networked] private Vector2 Position { get; set; }
 
     private bool _isDead = false;
@@ -17,6 +18,12 @@ public class EnemyManager : NetworkBehaviour
             Position = transform.position;
         }
     }
+
+    public int GetDamage()
+    {
+        return _damage;
+    }
+
     public override void FixedUpdateNetwork()
     {
         if (_isDead) return;
@@ -25,6 +32,14 @@ public class EnemyManager : NetworkBehaviour
         {
             Player closestPlayer = FindClosestPlayer();
             if (closestPlayer == null) return;
+
+            Vector2 directionToPlayer = closestPlayer.transform.position - transform.position;
+            if (Vector2.Dot(transform.right, directionToPlayer) < 0)
+            {
+                transform.rotation = Quaternion.Euler(0, 180, 0);
+                Rpc_RotateZombie();
+
+            }
 
             Vector2 targetPosition = closestPlayer.transform.position;
             Vector2 newPos = Vector2.MoveTowards(Position, targetPosition, _speed * Runner.DeltaTime);
@@ -67,6 +82,12 @@ public class EnemyManager : NetworkBehaviour
     {
         Position = newPosition;
         transform.position = newPosition;
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void Rpc_RotateZombie()
+    {
+        transform.rotation = Quaternion.Euler(0, 180, 0);
     }
 
     public void OnZombieDeath()

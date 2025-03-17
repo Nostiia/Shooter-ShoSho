@@ -6,9 +6,7 @@ public class SceletonBall : NetworkBehaviour
     [SerializeField] private float _speed = 5f;
     [SerializeField] private int _damage = 2;
     [SerializeField] private float _lifetime = 5f;
-
     private Rigidbody2D _rb;
-    private bool _isInitialized = false;
 
     public override void Spawned()
     {
@@ -27,7 +25,6 @@ public class SceletonBall : NetworkBehaviour
     {
         Vector2 direction = (targetPosition - (Vector2)transform.position).normalized;
         _rb.velocity = direction * _speed;
-        _isInitialized = true;
 
         Destroy(gameObject, 3f);
     }
