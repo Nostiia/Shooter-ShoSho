@@ -43,7 +43,6 @@ public class PhysxBall : NetworkBehaviour
     {
         _player = player;
         SetWeaponProperties();
-        Debug.Log($"{_weaponLifetime}");
         Life = TickTimer.CreateFromSeconds(Runner, _weaponLifetime);
         _rb.velocity = forward;
     }
@@ -72,21 +71,16 @@ public class PhysxBall : NetworkBehaviour
     {
         if (Life.Expired(Runner) && Object.HasStateAuthority)
         {
-            Debug.Log("Despawning projectile...");
             Runner.Despawn(Object);
         }
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        Debug.Log("Collision detected with: " + collision.gameObject.name);
-
-        ZombieDeathManager zombie = collision.gameObject.GetComponent<ZombieDeathManager>();
+        EnemyDeathManager zombie = collision.gameObject.GetComponent<EnemyDeathManager>();
 
         if (zombie != null && !zombie.IsZombieDead())
         {
-            Debug.Log("Hit a zombie: " + collision.gameObject.name);
-
             if (Object != null && Object.HasStateAuthority) 
             {
                 zombie.TakeDamage(Damage, _player);
@@ -99,7 +93,6 @@ public class PhysxBall : NetworkBehaviour
 
         if (Object != null && Object.HasStateAuthority)
         {
-            Debug.Log("Despawning projectile...");
             Runner.Despawn(Object);
         }
     }
@@ -110,7 +103,7 @@ public class PhysxBall : NetworkBehaviour
     {
         if (zombieObject != null)
         {
-            ZombieDeathManager zombie = zombieObject.GetComponent<ZombieDeathManager>();
+            EnemyDeathManager zombie = zombieObject.GetComponent<EnemyDeathManager>();
             if (zombie != null)
             {
                 zombie.TakeDamage(damage, _player);

@@ -33,6 +33,6 @@ public class StartManager : MonoBehaviour
         {
             player.RPC_CanMove(true);
         }
-        FindObjectOfType<TimerManager>().StartGameTimer();
+        FindObjectOfType<TimerManager>().StartGame();
     }
 }

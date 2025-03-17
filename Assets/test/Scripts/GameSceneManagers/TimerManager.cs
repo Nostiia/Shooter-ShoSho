@@ -4,34 +4,52 @@ using TMPro;
 
 public class TimerManager : NetworkBehaviour
 {
-    [Networked] private TickTimer CountdownTimer { get; set; }
+    [Networked] private TickTimer CurrentWaveTimer { get; set; }
     [Networked] private TickTimer RelaxTimer { get; set; }
 
     private TMP_Text _timerText;
-    private ZombieAppearenceManager _zombieManager;
+    [SerializeField] private EnemyAppearenceManager _zombieManager;
+    [SerializeField] private EnemyAppearenceManager _sceletonManager;
     private bool _isRelaxTime = false;
     private int _lastSpawnCheck = -1; // Track last spawn interval
+
+    private int _currentWave = 0;
+    private int _currentRelaxTime = 0;
+    private readonly int[] _waveDurations = { 30, 40, 60 };
+    private readonly int[] _relaxDurations = { 10, 20, 30 };
 
     public override void Spawned()
     {
         _timerText = GameObject.Find("Timer")?.GetComponent<TMP_Text>();
-        _zombieManager = FindObjectOfType<ZombieAppearenceManager>();
     }
 
-    public void StartGameTimer()
+    public void StartGame()
     {
         if (!Object.HasStateAuthority) return;
 
-        CountdownTimer = TickTimer.CreateFromSeconds(Runner, 60f);
+        _currentWave = 0;
+        _currentRelaxTime = 0;
+        StartNextWave();
+    }
+
+    public void StartNextWave()
+    {
+        if (_currentWave >= _waveDurations.Length)
+        {
+            GameOver();
+            return;
+        }
+
+        CurrentWaveTimer = TickTimer.CreateFromSeconds(Runner, _waveDurations[_currentWave]);
         _isRelaxTime = false;
-        _lastSpawnCheck = -1; // Reset spawn tracker
+        _lastSpawnCheck = -1;
     }
 
     private void StartRelaxTimer()
     {
         if (!Object.HasStateAuthority) return;
 
-        RelaxTimer = TickTimer.CreateFromSeconds(Runner, 10f);
+        RelaxTimer = TickTimer.CreateFromSeconds(Runner, _relaxDurations[_currentWave]);
         _isRelaxTime = true;
     }
 
@@ -41,33 +59,47 @@ public class TimerManager : NetworkBehaviour
 
         if (!_isRelaxTime)
         {
-            if (!CountdownTimer.IsRunning) return; // Ensure timer has started
+            if (!CurrentWaveTimer.IsRunning) return;
 
-            if (CountdownTimer.Expired(Runner))
+            if (CurrentWaveTimer.Expired(Runner))
             {
                 StartRelaxTimer();
             }
             else
             {
-                int remainingTime = Mathf.CeilToInt(CountdownTimer.RemainingTime(Runner) ?? 0);
-
-                // Spawn zombies only if timer is running and at exact 10-second intervals
+                int remainingTime = Mathf.CeilToInt(CurrentWaveTimer.RemainingTime(Runner) ?? 0);
                 if (remainingTime > 0 && remainingTime % 10 == 0 && remainingTime != _lastSpawnCheck)
                 {
-                    _zombieManager?.ZombieSpawned();
-                    _lastSpawnCheck = remainingTime; // Avoid multiple spawns
+                    switch (_currentWave)
+                    {
+                        case 0:
+                            Debug.Log(_currentWave);
+                            _zombieManager?.ZombieSpawned();
+                            _lastSpawnCheck = remainingTime;
+                            break;
+                        case 1:
+                            Debug.Log(_currentWave);
+                            _zombieManager?.ZombieSpawned();
+                            _sceletonManager?.ZombieSpawned();
+                            _lastSpawnCheck = remainingTime;
+                            break;
+                        case 2:
+                            Debug.Log(_currentWave);
+                            break;
+                    }      
                 }
-
                 RPC_UpdateTimer(remainingTime);
             }
         }
         else
         {
-            if (!RelaxTimer.IsRunning) return; // Ensure relax timer has started
+            if (!RelaxTimer.IsRunning) return;
 
             if (RelaxTimer.Expired(Runner))
             {
-                StartGameTimer();
+                _currentWave++; // Move to the next wave
+                _currentRelaxTime++; //Move to the next relax time
+                StartNextWave();
             }
             else
             {
@@ -75,6 +107,11 @@ public class TimerManager : NetworkBehaviour
                 RPC_UpdateTimer(remainingTime);
             }
         }
+    }
+
+    public void GameOver()
+    {
+        Debug.Log("All waves complete! Game Over.");
     }
 
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]

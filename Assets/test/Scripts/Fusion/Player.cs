@@ -45,6 +45,11 @@ public class Player : NetworkBehaviour
         
     }
 
+    public void TakeDamage(int damage)
+    {
+        _hpCounter.DecrementHP(damage);
+    }
+
     public override void FixedUpdateNetwork()
     {
         _isDead = _hpCounter.IsPlayerDied();
