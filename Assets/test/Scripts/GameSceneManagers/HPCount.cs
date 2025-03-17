@@ -9,7 +9,7 @@ public class HPCount : NetworkBehaviour
 {
     [SerializeField] private Sprite _dethSprite;
     [SerializeField] private SpriteRenderer _dethRenderer;
-    [Networked] private int HP { get; set; } = 100;
+    [Networked] private int HP { get; set; } = 20;
     private TMP_Text _hpText;
     private int _hpMax;
 
