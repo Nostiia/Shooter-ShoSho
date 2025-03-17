@@ -57,9 +57,16 @@ public class EnemyDeathManager : NetworkBehaviour
         {
             kc.IncrementKills();
         }
-
         EnemyManager zm = transform.GetComponent<EnemyManager>();
-        zm.OnZombieDeath();
+        if (zm != null)
+        {
+            zm.OnZombieDeath();
+        }
+        SkeletonManager sm = transform.GetComponent<SkeletonManager>();
+        if (sm != null)
+        {
+            sm.OnSkeletonDeath();
+        }
         StartCoroutine(DelayedDespawn());
     }
 

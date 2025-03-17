@@ -37,11 +37,11 @@ public class HPCount : NetworkBehaviour
     {
         if (HP <= 0)
             return;
-        EnemyManager zombieManager = collision.gameObject.GetComponent<EnemyManager>();
+        EnemyManager enemyManager = collision.gameObject.GetComponent<EnemyManager>();
 
-        if (zombieManager != null && !zombieManager.IsZombieDeath())
+        if (enemyManager != null && !enemyManager.IsZombieDeath())
         {
-            DecrementHP(5);
+            DecrementHP(enemyManager.GetDamage());
         }
     }
 
