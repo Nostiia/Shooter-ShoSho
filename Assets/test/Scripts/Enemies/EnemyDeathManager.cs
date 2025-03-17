@@ -2,7 +2,7 @@ using Fusion;
 using System.Collections;
 using UnityEngine;
 
-public class ZombieDeathManager : NetworkBehaviour
+public class EnemyDeathManager : NetworkBehaviour
 {
     [Networked] private int Health { get; set; } = 3; // Default health
     [SerializeField] private Sprite _deathZombie;
@@ -16,7 +16,7 @@ public class ZombieDeathManager : NetworkBehaviour
     private void Start()
     {
         _rb = GetComponent<Rigidbody2D>();
-        _zombieRenderer = transform.Find("BodyZombie").GetComponent<SpriteRenderer>();
+        _zombieRenderer = transform.Find("Body").GetComponent<SpriteRenderer>();
     }
 
     // Method to handle getting hit
@@ -58,7 +58,7 @@ public class ZombieDeathManager : NetworkBehaviour
             kc.IncrementKills();
         }
 
-        ZombieManager zm = transform.GetComponent<ZombieManager>();
+        EnemyManager zm = transform.GetComponent<EnemyManager>();
         zm.OnZombieDeath();
         StartCoroutine(DelayedDespawn());
     }

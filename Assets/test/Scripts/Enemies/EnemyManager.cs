@@ -3,9 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ZombieManager : NetworkBehaviour
+public class EnemyManager : NetworkBehaviour
 {
-    [SerializeField] private float _speed = 1f;
+    [SerializeField] private float _speed = 0.5f;
     [Networked] private Vector2 Position { get; set; }
 
     private bool _isDead = false;

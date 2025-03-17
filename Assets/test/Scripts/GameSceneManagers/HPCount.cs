@@ -9,7 +9,7 @@ public class HPCount : NetworkBehaviour
 {
     [SerializeField] private Sprite _dethSprite;
     [SerializeField] private SpriteRenderer _dethRenderer;
-    [Networked] private int HP { get; set; } = 40;
+    [Networked] private int HP { get; set; } = 20;
     private TMP_Text _hpText;
     private int _hpMax;
 
@@ -37,7 +37,7 @@ public class HPCount : NetworkBehaviour
     {
         if (HP <= 0)
             return;
-        ZombieManager zombieManager = collision.gameObject.GetComponent<ZombieManager>();
+        EnemyManager zombieManager = collision.gameObject.GetComponent<EnemyManager>();
 
         if (zombieManager != null && !zombieManager.IsZombieDeath())
         {

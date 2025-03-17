@@ -33,8 +33,6 @@ public class StartManager : MonoBehaviour
         {
             player.RPC_CanMove(true);
         }
-        ZombieAppearenceManager zombieAppearenceManager = FindObjectOfType<ZombieAppearenceManager>();
-        zombieAppearenceManager.ZombieSpawned();
-
+        FindObjectOfType<TimerManager>().StartGame();
     }
 }

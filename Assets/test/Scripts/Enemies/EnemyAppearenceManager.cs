@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using static Unity.Collections.Unicode;
 
-public class ZombieAppearenceManager : NetworkBehaviour
+public class EnemyAppearenceManager : NetworkBehaviour
 {
     [SerializeField] private GameObject _zombiePrefab;
     [SerializeField] private int _zombieCount = 5;
