@@ -1,65 +1,90 @@
-using System.Collections;
 using UnityEngine;
 using Fusion;
 using TMPro;
 
 public class TimerManager : NetworkBehaviour
 {
-    [Networked] private float CountdownTimer { get; set; } = 61f; 
+    [Networked] private TickTimer CountdownTimer { get; set; }
+    [Networked] private TickTimer RelaxTimer { get; set; }
+
     private TMP_Text _timerText;
     private ZombieAppearenceManager _zombieManager;
-    private bool isTimerRunning = false;
+    private bool _isRelaxTime = false;
+    private int _lastSpawnCheck = -1; // Track last spawn interval
 
     public override void Spawned()
     {
         _timerText = GameObject.Find("Timer")?.GetComponent<TMP_Text>();
         _zombieManager = FindObjectOfType<ZombieAppearenceManager>();
-
-        if (Object.HasStateAuthority)
-        {
-            isTimerRunning = false;
-        }
     }
 
-    public void StartTimer()
+    public void StartGameTimer()
     {
-        if (!isTimerRunning && Object.HasStateAuthority)
-        {
-            isTimerRunning = true;
-            StartCoroutine(TimerRoutine());
-        }
+        if (!Object.HasStateAuthority) return;
+
+        CountdownTimer = TickTimer.CreateFromSeconds(Runner, 60f);
+        _isRelaxTime = false;
+        _lastSpawnCheck = -1; // Reset spawn tracker
     }
 
-    private IEnumerator TimerRoutine()
+    private void StartRelaxTimer()
     {
-        while (CountdownTimer > 0)
-        {
-            CountdownTimer -= 1f;
-            RPC_UpdateTimer(CountdownTimer); // Send the updated time to clients
+        if (!Object.HasStateAuthority) return;
 
-            if (CountdownTimer % 10 == 0)
+        RelaxTimer = TickTimer.CreateFromSeconds(Runner, 10f);
+        _isRelaxTime = true;
+    }
+
+    public override void FixedUpdateNetwork()
+    {
+        if (!Object.HasStateAuthority) return;
+
+        if (!_isRelaxTime)
+        {
+            if (!CountdownTimer.IsRunning) return; // Ensure timer has started
+
+            if (CountdownTimer.Expired(Runner))
             {
-                _zombieManager?.ZombieSpawned();
+                StartRelaxTimer();
             }
+            else
+            {
+                int remainingTime = Mathf.CeilToInt(CountdownTimer.RemainingTime(Runner) ?? 0);
 
-            yield return new WaitForSeconds(1f);
+                // Spawn zombies only if timer is running and at exact 10-second intervals
+                if (remainingTime > 0 && remainingTime % 10 == 0 && remainingTime != _lastSpawnCheck)
+                {
+                    _zombieManager?.ZombieSpawned();
+                    _lastSpawnCheck = remainingTime; // Avoid multiple spawns
+                }
+
+                RPC_UpdateTimer(remainingTime);
+            }
+        }
+        else
+        {
+            if (!RelaxTimer.IsRunning) return; // Ensure relax timer has started
+
+            if (RelaxTimer.Expired(Runner))
+            {
+                StartGameTimer();
+            }
+            else
+            {
+                int remainingTime = Mathf.CeilToInt(RelaxTimer.RemainingTime(Runner) ?? 0);
+                RPC_UpdateTimer(remainingTime);
+            }
         }
     }
 
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-    private void RPC_UpdateTimer(float time)
-    {
-        CountdownTimer = time;
-        UpdateTimerUI();
-    }
-
-    private void UpdateTimerUI()
+    private void RPC_UpdateTimer(int time)
     {
         if (_timerText)
         {
-            int minutes = (int)CountdownTimer / 60;
-            int seconds = (int)CountdownTimer % 60;
-            _timerText.text = string.Format("{0:0}:{1:00}", minutes, seconds);
+            int minutes = time / 60;
+            int seconds = time % 60;
+            _timerText.text = $"{minutes:0}:{seconds:00}";
         }
     }
 }
