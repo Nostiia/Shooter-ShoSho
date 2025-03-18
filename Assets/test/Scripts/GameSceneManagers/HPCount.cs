@@ -88,6 +88,8 @@ public class HPCount : NetworkBehaviour
 
     public void PlayerDied()
     {
+        _dethRenderer.sprite = _dethSprite;
+        _isDied = true;
         Player player = transform.transform.GetComponent<Player>();
         if (player != null)
         {
