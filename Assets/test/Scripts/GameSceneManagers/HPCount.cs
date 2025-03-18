@@ -55,6 +55,16 @@ public class HPCount : NetworkBehaviour
         }
     }
 
+    public void IncrementHP(int plus)
+    {
+        if (Object.HasStateAuthority)
+        {
+            HP += plus;
+            UpdateHPText();
+            RPC_HP();
+        }
+    }
+
     private void UpdateHPText()
     {
         if (_hpText != null)
