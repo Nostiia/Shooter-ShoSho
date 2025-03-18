@@ -88,6 +88,11 @@ public class HPCount : NetworkBehaviour
 
     public void PlayerDied()
     {
+        Player player = transform.transform.GetComponent<Player>();
+        if (player != null)
+        {
+            player.SwitchCameras(false); // Disable camera when the player dies
+        }
         _dethRenderer.sprite = _dethSprite;
         _isDied = true;
 
