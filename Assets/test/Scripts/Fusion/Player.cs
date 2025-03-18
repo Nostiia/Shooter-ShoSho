@@ -33,6 +33,8 @@ public class Player : NetworkBehaviour
     private bool _isDead = false;
     private int _weaponIndex = -1;
 
+    [SerializeField] private Camera _playerCamera; // Assign in Inspector
+
     private void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
@@ -113,6 +115,12 @@ public class Player : NetworkBehaviour
 
     public override void Spawned()
     {
+        if (!HasInputAuthority)
+        {
+            // Disable camera for remote players
+            _playerCamera.gameObject.SetActive(false);
+        }
+
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
         _selectedAvatarIndex = PlayerPrefs.GetInt("SelectedAvatar", 0);
 
@@ -125,6 +133,31 @@ public class Player : NetworkBehaviour
         {
             _hostAvatarIndex = _selectedAvatarIndex;
         }
+    }
+
+    public void SwitchCameras(bool isAlive)
+    {
+        if (HasInputAuthority)
+        {
+            _playerCamera.gameObject.SetActive(isAlive);
+            Player anotherPlayer = FindAnotherAlivePlayer();
+            if (anotherPlayer != null)
+            {
+                anotherPlayer._playerCamera.gameObject.SetActive(true);
+            }
+        }
+    }
+
+    private Player FindAnotherAlivePlayer()
+    {
+        foreach (var player in FindObjectsOfType<Player>())
+        {
+            if (player != this && !player._isDead) 
+            {
+                return player;
+            }
+        }
+        return null; // No other alive player found
     }
 
     public void CouldMove()
