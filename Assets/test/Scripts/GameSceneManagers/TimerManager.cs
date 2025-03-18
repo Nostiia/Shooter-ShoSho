@@ -11,8 +11,10 @@ public class TimerManager : NetworkBehaviour
     [SerializeField] private EnemyAppearenceManager _zombieManager;
     [SerializeField] private EnemyAppearenceManager _sceletonManager;
     [SerializeField] private EnemyAppearenceManager _strongZombieManager;
-    [SerializeField] private MedKitManager _medKitManager;
-    [SerializeField] private AmmoPlusManager _ammoPlusManager;
+    [SerializeField] private BoxesSpawnerManager _medKitManager;
+    [SerializeField] private BoxesSpawnerManager _ammoPlusManager;
+    [SerializeField] private BoxesSpawnerManager _bombManager;
+
     private bool _isRelaxTime = false;
     private int _lastSpawnCheck = -1; // Track last spawn interval
 
@@ -74,7 +76,7 @@ public class TimerManager : NetworkBehaviour
                     if (remainingTime > 0 && remainingTime % 10 == 0 && remainingTime != _lastSpawnCheck)
                     {
                         
-                        _ammoPlusManager?.AmmoPlusSpawned();
+                        _ammoPlusManager?.BoxSpawned();
                         switch (_currentWave)
                         {
                             case 0:
@@ -82,14 +84,15 @@ public class TimerManager : NetworkBehaviour
                                 _lastSpawnCheck = remainingTime;
                                 break;
                             case 1:
-                                _medKitManager?.MedkitSpawned();
+                                _medKitManager?.BoxSpawned();
                                 _zombieManager?.ZombieSpawned();
                                 _sceletonManager?.ZombieSpawned();
                                 _lastSpawnCheck = remainingTime;
                                 break;
                             case 2:
-                                _medKitManager?.MedkitSpawned();
+                                _medKitManager?.BoxSpawned();
                                 _zombieManager?.ZombieSpawned();
+                                _bombManager?.BoxSpawned();
                                 _sceletonManager?.ZombieSpawned();
                                 _strongZombieManager?.ZombieSpawned();
                                 _lastSpawnCheck = remainingTime;
