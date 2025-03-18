@@ -12,6 +12,7 @@ public class TimerManager : NetworkBehaviour
     [SerializeField] private EnemyAppearenceManager _sceletonManager;
     [SerializeField] private EnemyAppearenceManager _strongZombieManager;
     [SerializeField] private MedKitManager _medKitManager;
+    [SerializeField] private AmmoPlusManager _ammoPlusManager;
     private bool _isRelaxTime = false;
     private int _lastSpawnCheck = -1; // Track last spawn interval
 
@@ -72,7 +73,8 @@ public class TimerManager : NetworkBehaviour
                     int remainingTime = Mathf.CeilToInt(CurrentWaveTimer.RemainingTime(Runner) ?? 0);
                     if (remainingTime > 0 && remainingTime % 10 == 0 && remainingTime != _lastSpawnCheck)
                     {
-                        _medKitManager?.MedkitSpawned();
+                        
+                        _ammoPlusManager?.AmmoPlusSpawned();
                         switch (_currentWave)
                         {
                             case 0:
@@ -80,11 +82,13 @@ public class TimerManager : NetworkBehaviour
                                 _lastSpawnCheck = remainingTime;
                                 break;
                             case 1:
+                                _medKitManager?.MedkitSpawned();
                                 _zombieManager?.ZombieSpawned();
                                 _sceletonManager?.ZombieSpawned();
                                 _lastSpawnCheck = remainingTime;
                                 break;
                             case 2:
+                                _medKitManager?.MedkitSpawned();
                                 _zombieManager?.ZombieSpawned();
                                 _sceletonManager?.ZombieSpawned();
                                 _strongZombieManager?.ZombieSpawned();
