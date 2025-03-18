@@ -55,6 +55,16 @@ public class HPCount : NetworkBehaviour
         }
     }
 
+    public void IncrementHP(int plus)
+    {
+        if (Object.HasStateAuthority)
+        {
+            HP += plus;
+            UpdateHPText();
+            RPC_HP();
+        }
+    }
+
     private void UpdateHPText()
     {
         if (_hpText != null)
@@ -88,6 +98,8 @@ public class HPCount : NetworkBehaviour
 
     public void PlayerDied()
     {
+        _dethRenderer.sprite = _dethSprite;
+        _isDied = true;
         Player player = transform.transform.GetComponent<Player>();
         if (player != null)
         {

@@ -27,6 +27,16 @@ public class AmmoCount :  NetworkBehaviour
         }
     }
 
+    public void IncrementAmmo(int amount)
+    {
+        if (Object.HasStateAuthority)
+        {
+            Ammos += amount;
+            UpdateAmmoText();
+            RPC_Ammos();
+        }
+    }
+
     private void UpdateAmmoText()
     {
         if (_ammoText != null)

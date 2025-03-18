@@ -75,9 +75,9 @@ public class PhysxBall : NetworkBehaviour
         }
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void OnTriggerEnter2D(Collider2D other)
     {
-        EnemyDeathManager zombie = collision.gameObject.GetComponent<EnemyDeathManager>();
+        EnemyDeathManager zombie = other.gameObject.GetComponent<EnemyDeathManager>();
 
         if (zombie != null && !zombie.IsZombieDead())
         {

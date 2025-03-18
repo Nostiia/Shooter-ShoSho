@@ -139,10 +139,11 @@ public class Player : NetworkBehaviour
     {
         if (HasInputAuthority)
         {
-            _playerCamera.gameObject.SetActive(isAlive);
+            
             Player anotherPlayer = FindAnotherAlivePlayer();
             if (anotherPlayer != null)
             {
+                _playerCamera.gameObject.SetActive(isAlive);
                 anotherPlayer._playerCamera.gameObject.SetActive(true);
             }
         }
