@@ -43,7 +43,7 @@ public class EnemyDeathManager : NetworkBehaviour
 
 
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-    private void RPC_Die(Player player)
+    public void RPC_Die(Player player)
     {
         _isDead = true;
 

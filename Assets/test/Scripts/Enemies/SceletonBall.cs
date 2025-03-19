@@ -35,7 +35,10 @@ public class SceletonBall : NetworkBehaviour
         if (player)
         {
             player.TakeDamage(_damage);
-            Destroy(gameObject);
+            if (Object != null && Object.HasStateAuthority)
+            {
+                Runner.Despawn(Object);
+            }
         }
     }
 }

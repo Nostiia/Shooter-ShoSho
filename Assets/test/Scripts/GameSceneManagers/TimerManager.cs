@@ -1,6 +1,6 @@
-using UnityEngine;
 using Fusion;
 using TMPro;
+using UnityEngine;
 
 public class TimerManager : NetworkBehaviour
 {
@@ -23,6 +23,10 @@ public class TimerManager : NetworkBehaviour
     private readonly int[] _waveDurations = { 30, 40, 60 };
     private readonly int[] _relaxDurations = { 10, 20, 30 };
 
+    [SerializeField] private GameObject _winScreen;
+    [SerializeField] private GameObject _loseScreen;
+    [SerializeField] private GameObject _gameCanvas;
+
     public override void Spawned()
     {
         _timerText = GameObject.Find("Timer")?.GetComponent<TMP_Text>();
@@ -41,7 +45,7 @@ public class TimerManager : NetworkBehaviour
     {
         if (_currentWave >= _waveDurations.Length)
         {
-            GameOver(false);
+            GameOver(true);
             return;
         }
 
@@ -79,7 +83,7 @@ public class TimerManager : NetworkBehaviour
                         _ammoPlusManager?.BoxSpawned();
                         switch (_currentWave)
                         {
-                            case 0:
+                            case 2:
                                 _zombieManager?.ZombieSpawned();
                                 _lastSpawnCheck = remainingTime;
                                 break;
@@ -89,11 +93,11 @@ public class TimerManager : NetworkBehaviour
                                 _sceletonManager?.ZombieSpawned();
                                 _lastSpawnCheck = remainingTime;
                                 break;
-                            case 2:
+                            case 0:
                                 _medKitManager?.BoxSpawned();
                                 _zombieManager?.ZombieSpawned();
                                 _bombManager?.BoxSpawned();
-                                _sceletonManager?.ZombieSpawned();
+                                //_sceletonManager?.ZombieSpawned();
                                 _strongZombieManager?.ZombieSpawned();
                                 _lastSpawnCheck = remainingTime;
                                 break;
@@ -102,11 +106,9 @@ public class TimerManager : NetworkBehaviour
                     RPC_UpdateTimer(remainingTime);
                 }
             }
-            else
+            if (AreBothPlayersDead())
             {
-                // Stop timer when both players are dead
-                Debug.Log("Both players are dead. Stopping the timer.");
-                GameOver(true);
+                GameOver(false);
             }
         }
         else
@@ -147,8 +149,23 @@ public class TimerManager : NetworkBehaviour
 
     public void GameOver(bool isPlayersAlive)
     {
-        Debug.Log("Game Over.");
-        // Show panel with results.
+        if (isPlayersAlive)
+        {
+            Debug.Log("Victory");
+            _gameCanvas.SetActive(false);
+            _winScreen.SetActive(true);
+            ResultManager _winResult = _winScreen.transform.GetComponent<ResultManager>();
+            _winResult.ShowResult();
+
+        }
+        else
+        {
+            Debug.Log("Lose");
+            _gameCanvas.SetActive(false);
+            _loseScreen.SetActive(true);
+            ResultManager _loseResult = _loseScreen.transform.GetComponent<ResultManager>();
+            _loseResult.ShowResult();
+        }
     }
 
 

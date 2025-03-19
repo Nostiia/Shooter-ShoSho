@@ -42,6 +42,11 @@ public class KillsCount : NetworkBehaviour
         }
     }
 
+    public int GetKillsCount()
+    {
+        return HostKills;
+    }
+
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     public void RPC_Kills()
     {
