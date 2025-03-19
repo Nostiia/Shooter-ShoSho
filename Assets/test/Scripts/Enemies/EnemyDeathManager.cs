@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class EnemyDeathManager : NetworkBehaviour
 {
-    [Networked] private int Health { get; set; } = 3; // Default health
+    [Networked] public int Health { get; set; } = 3; // Default health
     [SerializeField] private Sprite _deathZombie;
     [SerializeField] private SpriteRenderer _zombieRenderer;
 
@@ -19,7 +19,6 @@ public class EnemyDeathManager : NetworkBehaviour
         _zombieRenderer = transform.Find("Body").GetComponent<SpriteRenderer>();
     }
 
-    // Method to handle getting hit
     public void TakeDamage(int damage, Player player)
     {
         Debug.Log($"Zombie {gameObject.name} took {damage} damage!");
@@ -27,6 +26,7 @@ public class EnemyDeathManager : NetworkBehaviour
         if (Object.HasStateAuthority)  // Only the State Authority should modify health
         {
             Health -= damage;
+            player.transform.GetComponent<KillsCount>().AddDamage(damage);
             if (Health <= 0)
             {
                 Debug.Log("inside if Health");

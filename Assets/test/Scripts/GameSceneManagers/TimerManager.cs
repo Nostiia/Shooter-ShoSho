@@ -83,7 +83,7 @@ public class TimerManager : NetworkBehaviour
                         _ammoPlusManager?.BoxSpawned();
                         switch (_currentWave)
                         {
-                            case 2:
+                            case 0:
                                 _zombieManager?.ZombieSpawned();
                                 _lastSpawnCheck = remainingTime;
                                 break;
@@ -93,11 +93,11 @@ public class TimerManager : NetworkBehaviour
                                 _sceletonManager?.ZombieSpawned();
                                 _lastSpawnCheck = remainingTime;
                                 break;
-                            case 0:
+                            case 2:
                                 _medKitManager?.BoxSpawned();
                                 _zombieManager?.ZombieSpawned();
                                 _bombManager?.BoxSpawned();
-                                //_sceletonManager?.ZombieSpawned();
+                                _sceletonManager?.ZombieSpawned();
                                 _strongZombieManager?.ZombieSpawned();
                                 _lastSpawnCheck = remainingTime;
                                 break;
