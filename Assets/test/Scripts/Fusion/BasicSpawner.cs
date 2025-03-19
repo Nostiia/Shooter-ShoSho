@@ -86,7 +86,7 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
 
     [SerializeField] private NetworkPrefabRef _playerPrefab;
     private Dictionary<PlayerRef, NetworkObject> _spawnedCharacters = new Dictionary<PlayerRef, NetworkObject>();
-
+    private int _nextPlayerID = 1;
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
         if (runner.IsServer)
@@ -97,6 +97,14 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
             NetworkObject networkPlayerObject = runner.Spawn(_playerPrefab, spawnPosition, Quaternion.identity, player);
             // Keep track of the player avatars for easy access
             _spawnedCharacters.Add(player, networkPlayerObject);
+
+            Player newPlayer = networkPlayerObject.GetComponent<Player>();
+            if (newPlayer != null)
+            {
+                newPlayer.SetID(_nextPlayerID); 
+                _nextPlayerID++; 
+            }
+
             foreach (var _player in FindObjectsOfType<Player>())
             {
                 _player.RPC_HostSelectAvatar();

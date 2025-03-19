@@ -9,19 +9,19 @@ public class ResultManager : NetworkBehaviour
     [SerializeField] private TMP_Text[] _player;
     [SerializeField] private TMP_Text[] _resultKills;
     [SerializeField] private TMP_Text[] _state;
+    int index = 0;
 
-    private int count = 0;
     public void ShowResult()
     {
         Player[] players = FindObjectsOfType<Player>();
 
         foreach (Player p in players)
         {
-            _player[count].text = $"Player{count+1}";
-            _resultKills[count].text = "Kills: " + p.GetComponent<KillsCount>().GetKillsCount().ToString();
+            index = p.GetId() - 1;
+            _player[index].text = "Player" + (index + 1).ToString();
+            _resultKills[index].text = "Kills: " + p.GetComponent<KillsCount>().GetKillsCount().ToString();
             bool died = p.GetComponent<HPCount>().IsPlayerDied();
-            _state[count].text = died ? "DEAD" : "SURVIVED";
-            count++;
+            _state[index].text = died ? "DEAD" : "SURVIVED";
         }
     }
 }

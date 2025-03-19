@@ -47,6 +47,18 @@ public class Player : NetworkBehaviour
         
     }
 
+    [Networked] private int _id { get; set; } = 0;
+
+    public void SetID(int id)
+    {
+        _id = id;
+    }
+
+    public int GetId()
+    {
+        return _id;
+    }
+
     public void TakeDamage(int damage)
     {
         _hpCounter.DecrementHP(damage);

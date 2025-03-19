@@ -156,7 +156,7 @@ public class TimerManager : NetworkBehaviour
             _winScreen.SetActive(true);
             ResultManager _winResult = _winScreen.transform.GetComponent<ResultManager>();
             _winResult.ShowResult();
-
+            RPC_WinScreen();
         }
         else
         {
@@ -165,6 +165,7 @@ public class TimerManager : NetworkBehaviour
             _loseScreen.SetActive(true);
             ResultManager _loseResult = _loseScreen.transform.GetComponent<ResultManager>();
             _loseResult.ShowResult();
+            RPC_LoseScreen();
         }
     }
 
@@ -178,5 +179,23 @@ public class TimerManager : NetworkBehaviour
             int seconds = time % 60;
             _timerText.text = $"{minutes:0}:{seconds:00}";
         }
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RPC_WinScreen()
+    {
+        _gameCanvas.SetActive(false);
+        _winScreen.SetActive(true);
+        ResultManager _winResult = _winScreen.transform.GetComponent<ResultManager>();
+        _winResult.ShowResult();
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RPC_LoseScreen()
+    {
+        _gameCanvas.SetActive(false);
+        _loseScreen.SetActive(true);
+        ResultManager _loseResult = _loseScreen.transform.GetComponent<ResultManager>();
+        _loseResult.ShowResult();
     }
 }
