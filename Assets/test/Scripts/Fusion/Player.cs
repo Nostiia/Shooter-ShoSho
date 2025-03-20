@@ -34,13 +34,16 @@ public class Player : NetworkBehaviour
     private bool _isDead = false;
     private int _weaponIndex = -1;
 
-    [SerializeField] private Camera _playerCamera; // Assign in Inspector
+    [SerializeField] private Camera _playerCamera;
+
+    private Animator _animator;
 
     private void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
         _forward = transform.up;
         _bodyRenderer = transform.Find("Body").GetComponent<SpriteRenderer>();
+        _animator = transform.Find("Body").GetComponent<Animator>();
         _weaponRenderer = transform.Find("Weapon").GetComponent<SpriteRenderer>();
         _spawner = FindObjectOfType<BasicSpawner>();
         _weaponManager = transform.GetComponent<WeaponManager>();
@@ -74,6 +77,9 @@ public class Player : NetworkBehaviour
         {
             data.direction.Normalize();
             _rb.velocity = data.direction * Speed;
+
+            bool isMoving = data.direction.sqrMagnitude > 0;
+            _animator.SetBool("isRunning", isMoving);
 
             data.shootDirection.Normalize();
             if (data.shootDirection.sqrMagnitude > 0)
@@ -140,6 +146,10 @@ public class Player : NetworkBehaviour
                     SpawnedProjectile = !SpawnedProjectile;
                 }
             }
+        }
+        else
+        {
+            _animator.SetBool("isRunning", false);
         }
     }
 
