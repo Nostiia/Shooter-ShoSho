@@ -198,6 +198,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 057af8e7a90436c49a27e14218388e09, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _Health: 6
   _deathZombie: {fileID: 21300000, guid: 1531414e4eccbf946a6fef0343ed522b, type: 2}
   _zombieRenderer: {fileID: 0}
 --- !u!50 &1936754483293340738

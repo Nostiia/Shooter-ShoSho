@@ -225,6 +225,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 057af8e7a90436c49a27e14218388e09, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _Health: 4
   _deathZombie: {fileID: 21300000, guid: d429a58f0da27984bb067fc68eda52fc, type: 2}
   _zombieRenderer: {fileID: 0}
 --- !u!114 &-8702827630565963501

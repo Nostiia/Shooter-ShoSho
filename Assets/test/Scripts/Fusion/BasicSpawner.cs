@@ -2,6 +2,7 @@ using Fusion;
 using Fusion.Addons.Physics;
 using Fusion.Sockets;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using Unity.VisualScripting;
@@ -23,7 +24,6 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
     public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data) { }
     public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken) { }
     public void OnSceneLoadStart(NetworkRunner runner) { }
-    public void OnSceneLoadDone(NetworkRunner runner) { }
     public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
     public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
     public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key, ArraySegment<byte> data) { }
@@ -86,7 +86,7 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
 
     [SerializeField] private NetworkPrefabRef _playerPrefab;
     private Dictionary<PlayerRef, NetworkObject> _spawnedCharacters = new Dictionary<PlayerRef, NetworkObject>();
-
+    private int _nextPlayerID = 1;
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
         if (runner.IsServer)
@@ -97,6 +97,14 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
             NetworkObject networkPlayerObject = runner.Spawn(_playerPrefab, spawnPosition, Quaternion.identity, player);
             // Keep track of the player avatars for easy access
             _spawnedCharacters.Add(player, networkPlayerObject);
+
+            Player newPlayer = networkPlayerObject.GetComponent<Player>();
+            if (newPlayer != null)
+            {
+                newPlayer.SetID(_nextPlayerID); 
+                _nextPlayerID++; 
+            }
+
             foreach (var _player in FindObjectsOfType<Player>())
             {
                 _player.RPC_HostSelectAvatar();
@@ -113,6 +121,29 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
         }
     }
 
+    [SerializeField] private Joystick _moveJoystick;
+    [SerializeField] private Joystick _shootJoystick;
+    private bool _isJoystickActive = false;
+
+    public void OnSceneLoadDone(NetworkRunner runner)
+    {
+        Debug.Log("Scene load completed. Searching for joysticks...");
+
+        StartCoroutine(FindJoysticks());
+    }
+
+    private IEnumerator FindJoysticks()
+    {
+        yield return new WaitForSeconds(0.5f); 
+
+        _moveJoystick = GameObject.Find("MovementJoystick")?.GetComponent<Joystick>();
+        _shootJoystick = GameObject.Find("ShootJoystick")?.GetComponent<Joystick>();
+
+        if (_moveJoystick != null && _shootJoystick != null)
+            _isJoystickActive = true;
+    }
+
+
     private bool _mouseButton1;
 
     private void Update()
@@ -122,18 +153,42 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
 
     public void OnInput(NetworkRunner runner, NetworkInput input)
     {
-        var data = new NetworkInputData();   
-        if (Input.GetKey(KeyCode.W))
-            data.direction += new Vector3(0, 1, 0); // Move up in Y-axis
+        var data = new NetworkInputData();
+        float horizontalInput = 0;
+        float verticalInput = 0;
 
-        if (Input.GetKey(KeyCode.S))
-            data.direction += new Vector3(0, -1, 0); // Move down in Y-axis
+        float shootHorizontal = 0;
+        float shootVertical = 0;
 
-        if (Input.GetKey(KeyCode.A))
-            data.direction += new Vector3(-1, 0, 0); // Move left in X-axis
+        if (_isJoystickActive)
+        {
+            horizontalInput = _moveJoystick.Horizontal;
+            verticalInput = _moveJoystick.Vertical;
+            data.direction += new Vector3(horizontalInput, verticalInput, 0);
 
-        if (Input.GetKey(KeyCode.D))
-            data.direction += new Vector3(1, 0, 0); // Move right in X-axis
+            shootHorizontal = _shootJoystick.Horizontal;
+            shootVertical = _shootJoystick.Vertical;
+            data.shootDirection += new Vector3(shootHorizontal, shootVertical, 0);
+        }
+        else
+        {
+            if (Input.GetKey(KeyCode.W))
+                data.direction += new Vector3(0, 1, 0); // Move up in Y-axis
+
+            if (Input.GetKey(KeyCode.S))
+                data.direction += new Vector3(0, -1, 0); // Move down in Y-axis
+
+            if (Input.GetKey(KeyCode.A))
+                data.direction += new Vector3(-1, 0, 0); // Move left in X-axis
+
+            if (Input.GetKey(KeyCode.D))
+                data.direction += new Vector3(1, 0, 0); // Move right in X-axis
+        }
+
+        if (_shootJoystick != null && (shootHorizontal != 0 || shootVertical != 0))
+        {
+            data.buttons.Set(NetworkInputData.SHOOT, true);
+        }
 
         data.buttons.Set(NetworkInputData.MOUSEBUTTON1, _mouseButton1);
         _mouseButton1 = false;
@@ -145,6 +200,7 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
     {
         return _runner.SessionInfo.PlayerCount;
     }
+
     public bool IsPlayerHost()
     {
         return _isHost;

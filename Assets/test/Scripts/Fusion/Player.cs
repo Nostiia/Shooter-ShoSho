@@ -11,6 +11,7 @@ public class Player : NetworkBehaviour
     [SerializeField] private PhysxBall _prefabPhysxBall;
 
     private Vector3 _forward;
+    private Vector3 _shootDirection;
     [Networked] private TickTimer _delay { get; set; }
     [Networked] public bool CanMove { get; set; } = false;
     [Networked] public bool SpawnedProjectile { get; set; }
@@ -23,7 +24,7 @@ public class Player : NetworkBehaviour
 
     private ChangeDetector _changeDetector;
     private int _hostAvatarIndex = 0;
-    
+
     [SerializeField] private BasicSpawner _spawner;
 
     private WeaponManager _weaponManager;
@@ -40,11 +41,23 @@ public class Player : NetworkBehaviour
         _rb = GetComponent<Rigidbody2D>();
         _forward = transform.up;
         _bodyRenderer = transform.Find("Body").GetComponent<SpriteRenderer>();
+        _weaponRenderer = transform.Find("Weapon").GetComponent<SpriteRenderer>();
         _spawner = FindObjectOfType<BasicSpawner>();
         _weaponManager = transform.GetComponent<WeaponManager>();
         _ammoCounter = transform.GetComponent<AmmoCount>();
         _hpCounter = GetComponent<HPCount>();
-        
+    }
+
+    [Networked] private int _id { get; set; } = 0;
+
+    public void SetID(int id)
+    {
+        _id = id;
+    }
+
+    public int GetId()
+    {
+        return _id;
     }
 
     public void TakeDamage(int damage)
@@ -62,28 +75,45 @@ public class Player : NetworkBehaviour
             data.direction.Normalize();
             _rb.velocity = data.direction * Speed;
 
-            if (data.direction.sqrMagnitude > 0)
-                _forward = data.direction;
+            data.shootDirection.Normalize();
+            if (data.shootDirection.sqrMagnitude > 0)
+            {
+                _shootDirection = data.shootDirection;
+
+                float angle = Mathf.Atan2(_shootDirection.y, _shootDirection.x) * Mathf.Rad2Deg;
+                float angleY = 0;
+                if (Vector2.Dot(transform.right, _shootDirection) < 0)
+                {
+                    _bodyRenderer.transform.localRotation = Quaternion.Euler(0, 180, 0);
+                    angleY = 180;
+                    angle = -angle;
+                }
+                else
+                {
+                    _bodyRenderer.transform.localRotation = Quaternion.identity;
+                }
+                _weaponRenderer.transform.rotation = Quaternion.Euler(angleY, 0, angle);
+            }
 
             if (HasStateAuthority && _delay.ExpiredOrNotRunning(Runner) && _ammoCounter.GetCurrentAmmo() > 0)
             {
                 _weaponIndex = _weaponManager.GetWeaponIndex();
-                if (data.buttons.IsSet(NetworkInputData.MOUSEBUTTON1))
+                if (data.buttons.IsSet(NetworkInputData.MOUSEBUTTON1) || data.buttons.IsSet(NetworkInputData.SHOOT))
                 {
                     _delay = TickTimer.CreateFromSeconds(Runner, 0.5f);
                     Runner.Spawn(_prefabPhysxBall,
-                      transform.position + _forward,
-                      Quaternion.LookRotation(_forward),
+                      transform.position + _shootDirection,
+                      Quaternion.LookRotation(_shootDirection),
                       Object.InputAuthority,
                       (runner, o) =>
                       {
-                          o.GetComponent<PhysxBall>().Init(10 * _forward, this);
+                          o.GetComponent<PhysxBall>().Init(10 * _shootDirection, this);
                       });
-                    
+
                     if (_weaponManager.GetWeaponIndex() == 1)
                     {
-                        Vector3 rotatedForwardLeft = Quaternion.Euler(0, 0, 10) * _forward;
-                        Vector3 rotatedForwardRight = Quaternion.Euler(0, 0, -10) * _forward;
+                        Vector3 rotatedForwardLeft = Quaternion.Euler(0, 0, 10) * _shootDirection;
+                        Vector3 rotatedForwardRight = Quaternion.Euler(0, 0, -10) * _shootDirection;
 
                         Runner.Spawn(_prefabPhysxBall,
                           transform.position + rotatedForwardLeft,
@@ -91,7 +121,7 @@ public class Player : NetworkBehaviour
                           Object.InputAuthority,
                           (runner, o) =>
                           {
-                            o.GetComponent<PhysxBall>().Init(10 * rotatedForwardLeft, this);
+                              o.GetComponent<PhysxBall>().Init(10 * rotatedForwardLeft, this);
                           });
                         Runner.Spawn(_prefabPhysxBall,
                           transform.position + rotatedForwardRight,
@@ -99,16 +129,16 @@ public class Player : NetworkBehaviour
                           Object.InputAuthority,
                           (runner, o) =>
                           {
-                            o.GetComponent<PhysxBall>().Init(10 * rotatedForwardRight, this);
+                              o.GetComponent<PhysxBall>().Init(10 * rotatedForwardRight, this);
                           });
                     }
-                    
+
                     if (_ammoCounter != null)
                     {
                         _ammoCounter.DecrementAmmo();
                     }
                     SpawnedProjectile = !SpawnedProjectile;
-                }               
+                }
             }
         }
     }
@@ -117,7 +147,6 @@ public class Player : NetworkBehaviour
     {
         if (!HasInputAuthority)
         {
-            // Disable camera for remote players
             _playerCamera.gameObject.SetActive(false);
         }
 
@@ -139,7 +168,7 @@ public class Player : NetworkBehaviour
     {
         if (HasInputAuthority)
         {
-            
+
             Player anotherPlayer = FindAnotherAlivePlayer();
             if (anotherPlayer != null)
             {
@@ -153,7 +182,7 @@ public class Player : NetworkBehaviour
     {
         foreach (var player in FindObjectsOfType<Player>())
         {
-            if (player != this && !player._isDead) 
+            if (player != this && !player._isDead)
             {
                 return player;
             }
@@ -167,7 +196,7 @@ public class Player : NetworkBehaviour
         RPC_AccessCanMove();
     }
 
-    public void SaveHostIndex( int avatarindex)
+    public void SaveHostIndex(int avatarindex)
     {
         if (_spawner.IsPlayerHost())
         {
@@ -211,5 +240,5 @@ public class Player : NetworkBehaviour
         {
             _bodyRenderer.sprite = _avatarSprites[avatarIndex];
         }
-    }    
+    }
 }

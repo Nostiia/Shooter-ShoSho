@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using Fusion;
 using Fusion.Addons.Physics;
 using Fusion.Sockets;
+using UnityEngine.SceneManagement;
 
 public class StartManager : MonoBehaviour
 {
@@ -34,5 +35,16 @@ public class StartManager : MonoBehaviour
             player.RPC_CanMove(true);
         }
         FindObjectOfType<TimerManager>().StartGame();
+    }
+
+    public void BackToMain()
+    {
+        NetworkRunner runner = FindObjectOfType<NetworkRunner>(); 
+        if (runner != null)
+        {
+            runner.Shutdown(); 
+        }
+
+        SceneManager.LoadScene("SampleScene");
     }
 }

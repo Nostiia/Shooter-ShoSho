@@ -1,6 +1,6 @@
-using UnityEngine;
 using Fusion;
 using TMPro;
+using UnityEngine;
 
 public class TimerManager : NetworkBehaviour
 {
@@ -23,6 +23,10 @@ public class TimerManager : NetworkBehaviour
     private readonly int[] _waveDurations = { 30, 40, 60 };
     private readonly int[] _relaxDurations = { 10, 20, 30 };
 
+    [SerializeField] private GameObject _winScreen;
+    [SerializeField] private GameObject _loseScreen;
+    [SerializeField] private GameObject _gameCanvas;
+
     public override void Spawned()
     {
         _timerText = GameObject.Find("Timer")?.GetComponent<TMP_Text>();
@@ -41,7 +45,7 @@ public class TimerManager : NetworkBehaviour
     {
         if (_currentWave >= _waveDurations.Length)
         {
-            GameOver(false);
+            GameOver(true);
             return;
         }
 
@@ -102,11 +106,9 @@ public class TimerManager : NetworkBehaviour
                     RPC_UpdateTimer(remainingTime);
                 }
             }
-            else
+            if (AreBothPlayersDead())
             {
-                // Stop timer when both players are dead
-                Debug.Log("Both players are dead. Stopping the timer.");
-                GameOver(true);
+                GameOver(false);
             }
         }
         else
@@ -147,8 +149,24 @@ public class TimerManager : NetworkBehaviour
 
     public void GameOver(bool isPlayersAlive)
     {
-        Debug.Log("Game Over.");
-        // Show panel with results.
+        if (isPlayersAlive)
+        {
+            Debug.Log("Victory");
+            _gameCanvas.SetActive(false);
+            _winScreen.SetActive(true);
+            ResultManager _winResult = _winScreen.transform.GetComponent<ResultManager>();
+            _winResult.ShowResult();
+            RPC_WinScreen();
+        }
+        else
+        {
+            Debug.Log("Lose");
+            _gameCanvas.SetActive(false);
+            _loseScreen.SetActive(true);
+            ResultManager _loseResult = _loseScreen.transform.GetComponent<ResultManager>();
+            _loseResult.ShowResult();
+            RPC_LoseScreen();
+        }
     }
 
 
@@ -161,5 +179,23 @@ public class TimerManager : NetworkBehaviour
             int seconds = time % 60;
             _timerText.text = $"{minutes:0}:{seconds:00}";
         }
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RPC_WinScreen()
+    {
+        _gameCanvas.SetActive(false);
+        _winScreen.SetActive(true);
+        ResultManager _winResult = _winScreen.transform.GetComponent<ResultManager>();
+        _winResult.ShowResult();
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RPC_LoseScreen()
+    {
+        _gameCanvas.SetActive(false);
+        _loseScreen.SetActive(true);
+        ResultManager _loseResult = _loseScreen.transform.GetComponent<ResultManager>();
+        _loseResult.ShowResult();
     }
 }

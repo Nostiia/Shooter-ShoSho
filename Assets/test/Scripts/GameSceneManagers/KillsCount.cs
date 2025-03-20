@@ -6,6 +6,8 @@ public class KillsCount : NetworkBehaviour
 {
     [Networked] private int HostKills { get; set; } = 0;
 
+    [Networked] private int Damage { get; set; } = 0;
+
     private TMP_Text _killsText;
 
     private void Start()
@@ -19,6 +21,15 @@ public class KillsCount : NetworkBehaviour
         }
     }
 
+    public void AddDamage(int damage)
+    {
+        Damage += damage;
+    }
+
+    public int GetDamage()
+    {
+        return Damage;
+    }
 
     public void IncrementKills()
     {
@@ -40,6 +51,11 @@ public class KillsCount : NetworkBehaviour
                 _killsText.text = "Kills: " + killsToShow.ToString();
             }
         }
+    }
+
+    public int GetKillsCount()
+    {
+        return HostKills;
     }
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
