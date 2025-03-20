@@ -95,6 +95,7 @@ public class EnemyManager : NetworkBehaviour
         if (Object.HasStateAuthority) 
         {
             _isDead = true;
+            
         }
     }
 

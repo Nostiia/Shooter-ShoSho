@@ -4,19 +4,19 @@ using UnityEngine;
 
 public class EnemyDeathManager : NetworkBehaviour
 {
-    [Networked] public int Health { get; set; } = 3; // Default health
-    [SerializeField] private Sprite _deathZombie;
-    [SerializeField] private SpriteRenderer _zombieRenderer;
+    [Networked] public int Health { get; set; } = 3; 
 
     private Rigidbody2D _rb;
     private bool _isDead = false;
 
     private KillsCount _playerKillsCount;
 
+    private Animator _animator;
+
     private void Start()
     {
         _rb = GetComponent<Rigidbody2D>();
-        _zombieRenderer = transform.Find("Body").GetComponent<SpriteRenderer>();
+        _animator = transform.Find("Body").GetComponent<Animator>();
     }
 
     public void TakeDamage(int damage, Player player)
@@ -26,14 +26,23 @@ public class EnemyDeathManager : NetworkBehaviour
         if (Object.HasStateAuthority)  // Only the State Authority should modify health
         {
             Health -= damage;
+            _animator.SetBool("isHitted", true);
+            StartCoroutine(ResetHitAnimation());
             player.transform.GetComponent<KillsCount>().AddDamage(damage);
             if (Health <= 0)
             {
                 Debug.Log("inside if Health");
                 _isDead = true;
+                _animator.SetBool("isDied", _isDead);
                 RPC_Die(player);
             }
         }
+    }
+
+    private IEnumerator ResetHitAnimation()
+    {
+        yield return new WaitForSeconds(1f);
+        _animator.SetBool("isHitted", false);
     }
 
     public bool IsZombieDead()
@@ -46,11 +55,6 @@ public class EnemyDeathManager : NetworkBehaviour
     public void RPC_Die(Player player)
     {
         _isDead = true;
-
-        if (_zombieRenderer != null && _deathZombie != null)
-        {
-            _zombieRenderer.sprite = _deathZombie;
-        }
 
         KillsCount kc = player.GetComponent<KillsCount>();
         if (kc != null)
