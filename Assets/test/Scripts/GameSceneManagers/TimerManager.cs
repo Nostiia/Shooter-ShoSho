@@ -16,11 +16,11 @@ public class TimerManager : NetworkBehaviour
     [SerializeField] private BoxesSpawnerManager _bombManager;
 
     private bool _isRelaxTime = false;
-    private int _lastSpawnCheck = -1; // Track last spawn interval
+    private int _lastSpawnCheck = -1; 
 
     private int _currentWave = 0;
     private int _currentRelaxTime = 0;
-    private readonly int[] _waveDurations = { 30, 40, 60 };
+    private readonly int[] _waveDurations = { 35, 60, 90 };
     private readonly int[] _relaxDurations = { 10, 20, 30 };
 
     [SerializeField] private GameObject _winScreen;
@@ -117,8 +117,8 @@ public class TimerManager : NetworkBehaviour
             {
                 if (RelaxTimer.Expired(Runner))
                 {
-                    _currentWave++; // Move to the next wave
-                    _currentRelaxTime++; // Move to the next relax time
+                    _currentWave++; 
+                    _currentRelaxTime++; 
                     StartNextWave();
                 }
                 else
@@ -151,7 +151,11 @@ public class TimerManager : NetworkBehaviour
     {
         if (isPlayersAlive)
         {
-            Debug.Log("Victory");
+            Player[] players = FindObjectsOfType<Player>();
+            foreach (Player player in players)
+            {
+                player.DisableMovement();
+            }
             _gameCanvas.SetActive(false);
             _winScreen.SetActive(true);
             ResultManager _winResult = _winScreen.transform.GetComponent<ResultManager>();
@@ -160,7 +164,6 @@ public class TimerManager : NetworkBehaviour
         }
         else
         {
-            Debug.Log("Lose");
             _gameCanvas.SetActive(false);
             _loseScreen.SetActive(true);
             ResultManager _loseResult = _loseScreen.transform.GetComponent<ResultManager>();

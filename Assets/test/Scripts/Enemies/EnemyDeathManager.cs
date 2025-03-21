@@ -21,9 +21,7 @@ public class EnemyDeathManager : NetworkBehaviour
 
     public void TakeDamage(int damage, Player player)
     {
-        Debug.Log($"Zombie {gameObject.name} took {damage} damage!");
-
-        if (Object.HasStateAuthority)  // Only the State Authority should modify health
+        if (Object.HasStateAuthority) 
         {
             Health -= damage;
             _animator.SetBool("isHitted", true);
@@ -32,7 +30,6 @@ public class EnemyDeathManager : NetworkBehaviour
             player.transform.GetComponent<KillsCount>().AddDamage(damage);
             if (Health <= 0)
             {
-                Debug.Log("inside if Health");
                 _isDead = true;
                 _animator.SetBool("isDied", _isDead);
                 RPC_Die(player);
@@ -85,9 +82,8 @@ public class EnemyDeathManager : NetworkBehaviour
     {
         yield return new WaitForSeconds(3f);
 
-        if (Object.HasStateAuthority) // Only State Authority should despawn
+        if (Object.HasStateAuthority) 
         {
-            Debug.Log($"Despawning zombie {gameObject.name}");
             Runner.Despawn(Object);
         }
     }

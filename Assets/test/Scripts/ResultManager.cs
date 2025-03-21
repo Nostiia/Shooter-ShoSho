@@ -20,7 +20,7 @@ public class ResultManager : NetworkBehaviour
 
         foreach (Player p in players)
         {
-            if (p.HasInputAuthority) // This checks if the player is local
+            if (p.HasInputAuthority)
             {
                 localPlayer = p;
                 break;

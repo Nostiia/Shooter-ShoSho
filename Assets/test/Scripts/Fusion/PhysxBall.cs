@@ -28,7 +28,7 @@ public class PhysxBall : NetworkBehaviour
 
     private System.Collections.IEnumerator IgnoreCollisionsAfterSpawn()
     {
-        yield return new WaitForSeconds(0.1f);  // Small delay to ensure all objects are initialized
+        yield return new WaitForSeconds(0.1f); 
 
         foreach (PhysxBall projectile in FindObjectsOfType<PhysxBall>())
         {

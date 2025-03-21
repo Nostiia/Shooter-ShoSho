@@ -1,3 +1,4 @@
+using Fusion;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -50,5 +51,16 @@ public class MainMenuManager : MonoBehaviour
         _chooseAvatarCanvas.SetActive(false);
         _createRoomPanel.SetActive(false);
         _connectRoomPanel.SetActive(false);
+    }
+
+    public void BackOfLoading()
+    {
+        NetworkRunner runner = FindObjectOfType<NetworkRunner>();
+        if (runner != null)
+        {
+            runner.Shutdown();
+        }
+
+        SceneManager.LoadScene("SampleScene");
     }
 }

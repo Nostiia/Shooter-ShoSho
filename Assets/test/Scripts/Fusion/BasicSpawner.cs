@@ -38,8 +38,6 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
 
     public async void StartGame(GameMode mode, string roomName)
     {
-        // Create the Fusion runner and let it know that we will be providing user input
-        Debug.Log("Inside BasicSpawner Start Game");
         _runner = gameObject.AddComponent<NetworkRunner>();
         DontDestroyOnLoad(_runner);
 
@@ -48,7 +46,6 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
 
         _runner.ProvideInput = true;
         var scene = SceneRef.FromIndex(1);
-        // Start or join (depends on gamemode) a session with a specific name
         await _runner.StartGame(new StartGameArgs()
         {
             GameMode = mode,
@@ -91,11 +88,9 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
     {
         if (runner.IsServer)
         {
-            // Create a unique position for the player
             Vector2 spawnPosition = new Vector2((player.RawEncoded % runner.Config.Simulation.PlayerCount) * 3, 1);
 
             NetworkObject networkPlayerObject = runner.Spawn(_playerPrefab, spawnPosition, Quaternion.identity, player);
-            // Keep track of the player avatars for easy access
             _spawnedCharacters.Add(player, networkPlayerObject);
 
             Player newPlayer = networkPlayerObject.GetComponent<Player>();
@@ -103,6 +98,11 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
             {
                 newPlayer.SetID(_nextPlayerID); 
                 _nextPlayerID++; 
+
+                if (player != runner.LocalPlayer)
+                {
+                    newPlayer.RPC_RequestAvatarSelection();
+                }
             }
 
             foreach (var _player in FindObjectsOfType<Player>())
@@ -127,8 +127,6 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
 
     public void OnSceneLoadDone(NetworkRunner runner)
     {
-        Debug.Log("Scene load completed. Searching for joysticks...");
-
         StartCoroutine(FindJoysticks());
     }
 
