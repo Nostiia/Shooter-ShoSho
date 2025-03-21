@@ -21,7 +21,7 @@ public class StartManager : MonoBehaviour
 
     private void Update()
     {
-        if ( _spawner != null  && _spawner.PlayerCount() == 1 && _spawner.IsPlayerHost())
+        if ( _spawner != null  &&  _spawner.PlayerCount() == 2 && _spawner.IsPlayerHost())
         {
             _startButton.SetActive(true);
         }

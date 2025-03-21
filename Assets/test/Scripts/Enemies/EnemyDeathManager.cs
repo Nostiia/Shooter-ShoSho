@@ -27,6 +27,7 @@ public class EnemyDeathManager : NetworkBehaviour
         {
             Health -= damage;
             _animator.SetBool("isHitted", true);
+            RPC_Hitted();
             StartCoroutine(ResetHitAnimation());
             player.transform.GetComponent<KillsCount>().AddDamage(damage);
             if (Health <= 0)
@@ -50,12 +51,18 @@ public class EnemyDeathManager : NetworkBehaviour
         return _isDead;
     }
 
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    public void RPC_Hitted()
+    {
+        _animator.SetBool("isHitted", true);
+        StartCoroutine(ResetHitAnimation());
+    }
 
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     public void RPC_Die(Player player)
     {
         _isDead = true;
-
+        _animator.SetBool("isDied", _isDead);
         KillsCount kc = player.GetComponent<KillsCount>();
         if (kc != null)
         {

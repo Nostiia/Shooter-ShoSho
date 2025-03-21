@@ -20,6 +20,7 @@ public class Player : NetworkBehaviour
     private SpriteRenderer _weaponRenderer;
 
     [SerializeField] private Sprite[] _avatarSprites;
+    [SerializeField] private AnimatorOverrideController[] _animatiaons;
     private int _selectedAvatarIndex;
 
     private ChangeDetector _changeDetector;
@@ -37,6 +38,9 @@ public class Player : NetworkBehaviour
     [SerializeField] private Camera _playerCamera;
 
     private Animator _animator;
+
+    [Networked] private bool _isRunning { get; set; }
+
 
     private void Awake()
     {
@@ -72,14 +76,23 @@ public class Player : NetworkBehaviour
     {
         _isDead = _hpCounter.IsPlayerDied();
 
+        if (_selectedAvatarIndex != 0)
+        {
+            _animator.runtimeAnimatorController = _animatiaons[_selectedAvatarIndex];
+        }
 
         if (GetInput(out NetworkInputData data) && CanMove && !_isDead)
         {
             data.direction.Normalize();
             _rb.velocity = data.direction * Speed;
 
-            bool isMoving = data.direction.sqrMagnitude > 0;
-            _animator.SetBool("isRunning", isMoving);
+            if (Object.HasStateAuthority)
+            {
+                _isRunning = data.direction.sqrMagnitude > 0;
+                RPC_UpdateAnimation(_isRunning);
+            }
+
+            _animator.SetBool("isRunning", _isRunning);
 
             data.shootDirection.Normalize();
             if (data.shootDirection.sqrMagnitude > 0)
@@ -166,6 +179,10 @@ public class Player : NetworkBehaviour
         if (_selectedAvatarIndex >= 0 && _selectedAvatarIndex < _avatarSprites.Length)
         {
             _bodyRenderer.sprite = _avatarSprites[_selectedAvatarIndex];
+            if (_selectedAvatarIndex < _animatiaons.Length)
+            {
+                _animator.runtimeAnimatorController = _animatiaons[_selectedAvatarIndex];
+            }
         }
 
         if (_spawner.IsPlayerHost())
@@ -240,15 +257,30 @@ public class Player : NetworkBehaviour
     public void RPC_HostSelectAvatar()
     {
         RPC_UpdateHostAvatar(_hostAvatarIndex);
+        RPC_UpdateHostAnimation(_hostAvatarIndex);
     }
 
     [Rpc(RpcSources.StateAuthority, RpcTargets.All, HostMode = RpcHostMode.SourceIsServer)]
     public void RPC_UpdateHostAvatar(int avatarIndex)
     {
-        // Ensure the avatarIndex is within valid range
-        if (avatarIndex >= 0 && avatarIndex < _avatarSprites.Length)
+        if (_spawner.IsPlayerHost()) // Apply only if it's the host player
         {
+            _hostAvatarIndex = avatarIndex;
             _bodyRenderer.sprite = _avatarSprites[avatarIndex];
         }
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    public void RPC_UpdateHostAnimation(int avatarIndex)
+    {
+        _animator.runtimeAnimatorController = _animatiaons[avatarIndex];
+    }
+
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    public void RPC_UpdateAnimation(bool isRunning)
+    {
+        _isRunning = isRunning;
+        _animator.SetBool("isRunning", _isRunning);
     }
 }

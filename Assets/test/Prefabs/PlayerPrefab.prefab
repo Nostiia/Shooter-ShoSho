@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5782619889223516977}
   - component: {fileID: 6476129347051351459}
+  - component: {fileID: 5209376559630494197}
   m_Layer: 0
   m_Name: Weapon
   m_TagString: Untagged
@@ -84,6 +85,23 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &5209376559630494197
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1563756711289816513}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 0
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0
 --- !u!1 &2777731563582107872
 GameObject:
   m_ObjectHideFlags: 0
@@ -257,6 +275,7 @@ MonoBehaviour:
   - {fileID: -15947083249254137}
   - {fileID: 5327311247517437301}
   - {fileID: -8581241427436270751}
+  - {fileID: 5209376559630494197}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &-7224246823203876013
 MonoBehaviour:
@@ -295,6 +314,11 @@ MonoBehaviour:
   - {fileID: 21300000, guid: c87388d416d0b084a95dc7d2f780bf7c, type: 2}
   - {fileID: 21300000, guid: 4c6dd1bdfc4111642941b79ed3a6b002, type: 2}
   - {fileID: 21300000, guid: 2e013a3a3db21a048acfe26c37a7090c, type: 2}
+  _animatiaons:
+  - {fileID: 22100000, guid: 3393a18cf9e963e4f88520682f3d64fc, type: 2}
+  - {fileID: 22100000, guid: b8c9f3a52ea9cde43b102a50177e6c1d, type: 2}
+  - {fileID: 22100000, guid: fb7890aca03b4a8458da09d7c7f9d326, type: 2}
+  - {fileID: 22100000, guid: 883247d5db8f2dc4a8821bd5f75af083, type: 2}
   _spawner: {fileID: 0}
   _playerCamera: {fileID: 3547546965205638709}
 --- !u!50 &1250274510086666685
@@ -419,8 +443,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 23cabb2fb22a1614b92c11620dbce2f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _dethSprite: {fileID: 21300000, guid: 3baf74e812e2fb048a8c2f0bc723a040, type: 2}
-  _dethRenderer: {fileID: 0}
 --- !u!61 &-6867768133037155659
 BoxCollider2D:
   m_ObjectHideFlags: 0

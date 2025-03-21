@@ -11,7 +11,7 @@ public class EnemyAppearenceManager : NetworkBehaviour
 
     public void ZombieSpawned()
     {
-        if (Runner.IsServer) // Ensure only the host spawns zombies
+        if (Runner.IsServer)
         {
             for (int i = 0; i < _zombieCount; i++)
             {
