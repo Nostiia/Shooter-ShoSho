@@ -32,12 +32,11 @@ public class SkeletonManager : NetworkBehaviour
         float distance = Vector2.Distance(transform.position, closestPlayer.transform.position);
         Vector2 moveDirection;
 
-        // If too far, move towards the player
         if (distance > _safeDistance)
         {
             moveDirection = (closestPlayer.transform.position - transform.position).normalized;
         }
-        // If too close, move away from the player
+
         else if (distance < _safeDistance)
         {
             moveDirection = (transform.position - closestPlayer.transform.position).normalized;
@@ -47,16 +46,13 @@ public class SkeletonManager : NetworkBehaviour
             return;
         }
 
-        //Rotate the skeleton
         Vector2 directionToPlayer = closestPlayer.transform.position - transform.position;
         if (Vector2.Dot(transform.right, directionToPlayer) < 0)
         {
             transform.rotation = Quaternion.Euler(0, 180, 0);
             Rpc_RotateSkeleton();
-
         }
 
-        // Move the skeleton
         Vector2 newPos = (Vector2)transform.position + moveDirection * _speed * Runner.DeltaTime;
         Position = newPos;
         Rpc_MoveSkeleton(newPos);
@@ -115,10 +111,12 @@ public class SkeletonManager : NetworkBehaviour
     private void Rpc_SpawnEnergyBall(Vector2 spawnPosition, Vector2 targetPosition)
     {
         float playerDirection = targetPosition.x - spawnPosition.x;
-        Vector2 spawnOffset = playerDirection < 0 ? new Vector2(-1, 0) : new Vector2(1, 0); // Offset for left or right
-        GameObject ball = Instantiate(_skeletonBallPrefab, spawnPosition + spawnOffset, Quaternion.identity);
-        ball.GetComponent<SceletonBall>().Initialize(targetPosition);
+        Vector2 spawnOffset = playerDirection < 0 ? new Vector2(-1, 0) : new Vector2(1, 0); 
+
+        NetworkObject networkObject = Runner.Spawn(_skeletonBallPrefab, spawnPosition + spawnOffset, Quaternion.identity);
+        networkObject.gameObject.GetComponent<SceletonBall>().Initialize(targetPosition);
     }
+
 
     public void OnSkeletonDeath()
     {

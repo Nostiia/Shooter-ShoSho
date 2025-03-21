@@ -65,7 +65,6 @@ public class ChooseAvatarManager : MonoBehaviour
         // Save selected avatar for use in the game
         PlayerPrefs.SetInt("SelectedAvatar", _selectedAvatarIndex);
         PlayerPrefs.Save();
-        Debug.Log("Avatar " + _selectedAvatarIndex + " selected!");
 
         foreach (Image avatar in _avatars)
         {

@@ -3,6 +3,7 @@ using System.Globalization;
 using System;
 using TMPro;
 using UnityEngine;
+using System.Xml;
 
 public class Player : NetworkBehaviour
 {
@@ -20,7 +21,7 @@ public class Player : NetworkBehaviour
     private SpriteRenderer _weaponRenderer;
 
     [SerializeField] private Sprite[] _avatarSprites;
-    private int _selectedAvatarIndex;
+    [SerializeField] private AnimatorOverrideController[] _animatiaons;
 
     private ChangeDetector _changeDetector;
     private int _hostAvatarIndex = 0;
@@ -34,18 +35,30 @@ public class Player : NetworkBehaviour
     private bool _isDead = false;
     private int _weaponIndex = -1;
 
-    [SerializeField] private Camera _playerCamera; // Assign in Inspector
+    [SerializeField] private Camera _playerCamera;
+
+    private Animator _animator;
+
+    [Networked] private bool _isRunning { get; set; }
+
+    [Networked] private int _selectedAvatarIndex { get; set; }
 
     private void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
         _forward = transform.up;
         _bodyRenderer = transform.Find("Body").GetComponent<SpriteRenderer>();
+        _animator = transform.Find("Body").GetComponent<Animator>();
         _weaponRenderer = transform.Find("Weapon").GetComponent<SpriteRenderer>();
         _spawner = FindObjectOfType<BasicSpawner>();
         _weaponManager = transform.GetComponent<WeaponManager>();
         _ammoCounter = transform.GetComponent<AmmoCount>();
         _hpCounter = GetComponent<HPCount>();
+    }
+
+    private void Start()
+    {
+        SetState(new IdleState(this));
     }
 
     [Networked] private int _id { get; set; } = 0;
@@ -68,12 +81,34 @@ public class Player : NetworkBehaviour
     public override void FixedUpdateNetwork()
     {
         _isDead = _hpCounter.IsPlayerDied();
+        if (_isDead)
+        {
+            SetState(new DeadState(this));
+            return;
+        }
 
+        foreach (var change in _changeDetector.DetectChanges(this))
+        {
+            if (change == nameof(_selectedAvatarIndex))
+            {
+                UpdateAvatar(_selectedAvatarIndex);
+            }
+        }
+
+        _currentState?.Update();
+
+        _animator.runtimeAnimatorController = _animatiaons[_selectedAvatarIndex];
 
         if (GetInput(out NetworkInputData data) && CanMove && !_isDead)
         {
             data.direction.Normalize();
             _rb.velocity = data.direction * Speed;
+
+            if (Object.HasStateAuthority)
+            {
+                _isRunning = data.direction.sqrMagnitude > 0;
+                RPC_UpdateAnimation(_isRunning);
+            }
 
             data.shootDirection.Normalize();
             if (data.shootDirection.sqrMagnitude > 0)
@@ -141,6 +176,10 @@ public class Player : NetworkBehaviour
                 }
             }
         }
+        else
+        {
+            SetState(new IdleState(this));
+        }
     }
 
     public override void Spawned()
@@ -151,17 +190,66 @@ public class Player : NetworkBehaviour
         }
 
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
-        _selectedAvatarIndex = PlayerPrefs.GetInt("SelectedAvatar", 0);
+
+        if (HasInputAuthority)
+        {
+            _selectedAvatarIndex = PlayerPrefs.GetInt("SelectedAvatar", 0);
+            RPC_SelectAvatar(_selectedAvatarIndex); 
+        }
 
         if (_selectedAvatarIndex >= 0 && _selectedAvatarIndex < _avatarSprites.Length)
         {
             _bodyRenderer.sprite = _avatarSprites[_selectedAvatarIndex];
+            if (_selectedAvatarIndex < _animatiaons.Length)
+            {
+                _animator.runtimeAnimatorController = _animatiaons[_selectedAvatarIndex];
+            }
         }
 
         if (_spawner.IsPlayerHost())
         {
             _hostAvatarIndex = _selectedAvatarIndex;
         }
+    }
+
+    private static void OnAvatarChanged(Player player, int previousValue, int newValue)
+    {
+        player.UpdateAvatar(newValue);
+    }
+
+    private void UpdateAvatar(int avatarIndex)
+    {
+        if (avatarIndex >= 0 && avatarIndex < _avatarSprites.Length)
+        {
+            _bodyRenderer.sprite = _avatarSprites[avatarIndex];
+            if (avatarIndex < _animatiaons.Length)
+            {
+                _animator.runtimeAnimatorController = _animatiaons[avatarIndex];
+            }
+        }
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.InputAuthority)]
+    public void RPC_RequestAvatarSelection()
+    {
+        int savedAvatar = PlayerPrefs.GetInt("SelectedAvatar", 0);
+        RPC_SelectAvatar(savedAvatar);
+    }
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    public void RPC_SelectAvatar(int avatarIndex)
+    {
+        if (Object.HasStateAuthority)
+        {
+            _selectedAvatarIndex = avatarIndex;
+            RPC_UpdateAvatar(avatarIndex);
+        }
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    public void RPC_UpdateAvatar(int avatarIndex)
+    {
+        UpdateAvatar(avatarIndex);
     }
 
     public void SwitchCameras(bool isAlive)
@@ -187,7 +275,7 @@ public class Player : NetworkBehaviour
                 return player;
             }
         }
-        return null; // No other alive player found
+        return null;
     }
 
     public void CouldMove()
@@ -230,15 +318,68 @@ public class Player : NetworkBehaviour
     public void RPC_HostSelectAvatar()
     {
         RPC_UpdateHostAvatar(_hostAvatarIndex);
+        RPC_UpdateHostAnimation(_hostAvatarIndex);
     }
 
-    [Rpc(RpcSources.StateAuthority, RpcTargets.All, HostMode = RpcHostMode.SourceIsServer)]
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     public void RPC_UpdateHostAvatar(int avatarIndex)
     {
-        // Ensure the avatarIndex is within valid range
-        if (avatarIndex >= 0 && avatarIndex < _avatarSprites.Length)
+        if (_spawner.IsPlayerHost())
         {
+            _hostAvatarIndex = avatarIndex;
             _bodyRenderer.sprite = _avatarSprites[avatarIndex];
         }
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    public void RPC_UpdateHostAnimation(int avatarIndex)
+    {
+        _animator.runtimeAnimatorController = _animatiaons[avatarIndex];
+    }
+
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    public void RPC_UpdateAnimation(bool isRunning)
+    {
+        _isRunning = isRunning;
+        _animator.SetBool("isRunning", _isRunning);
+    }
+
+    public Animator GetAnimator()
+    {
+        return _animator;
+    }
+
+    public void SetAnimation(string animation, bool value)
+    {
+        _animator.SetBool(animation, value);
+    }
+
+    private PlayerStateBase _currentState;
+
+    public bool HasMovementInput()
+    {
+        return GetInput(out NetworkInputData data) && data.direction.sqrMagnitude > 0;
+    }
+
+    public void SetState(PlayerStateBase newState)
+    {
+        _currentState?.Exit();
+        _currentState = newState;
+        _currentState.Enter();
+    }
+
+    public void MovePlayer()
+    {
+        if (GetInput(out NetworkInputData data))
+        {
+            _rb.velocity = data.direction * Speed;
+        }
+    }
+
+    public void DisableMovement()
+    {
+        Speed = 0;
+        _rb.velocity = Vector2.zero;
     }
 }

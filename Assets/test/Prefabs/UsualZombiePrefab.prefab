@@ -10,6 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 5011610492060571407}
   - component: {fileID: 3898759886730713290}
+  - component: {fileID: 6270225580872768608}
+  - component: {fileID: 834743110388472016}
   m_Layer: 0
   m_Name: Body
   m_TagString: Untagged
@@ -84,6 +86,44 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!95 &6270225580872768608
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7046325258350200803}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 393de0417d72b58478a0f61865d0eb17, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &834743110388472016
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7046325258350200803}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 0
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0
 --- !u!1 &7785510226281644063
 GameObject:
   m_ObjectHideFlags: 0
@@ -98,6 +138,7 @@ GameObject:
   - component: {fileID: -2289851991016020977}
   - component: {fileID: 1936754483293340738}
   - component: {fileID: -1461289464528511326}
+  - component: {fileID: 3744432594007298923}
   m_Layer: 0
   m_Name: UsualZombiePrefab
   m_TagString: Untagged
@@ -140,6 +181,8 @@ MonoBehaviour:
   NetworkedBehaviours:
   - {fileID: -2289851991016020977}
   - {fileID: -1461289464528511326}
+  - {fileID: 3744432594007298923}
+  - {fileID: 834743110388472016}
   ForceRemoteRenderTimeframe: 0
 --- !u!61 &6022390665687073716
 BoxCollider2D:
@@ -198,8 +241,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 057af8e7a90436c49a27e14218388e09, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _deathZombie: {fileID: 21300000, guid: b7f2a9da3c5bd794798e120d50e7937d, type: 2}
-  _zombieRenderer: {fileID: 0}
+  _Health: 3
 --- !u!50 &1936754483293340738
 Rigidbody2D:
   serializedVersion: 4
@@ -241,3 +283,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _speed: 1
   _damage: 3
+--- !u!114 &3744432594007298923
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7785510226281644063}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 0
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0

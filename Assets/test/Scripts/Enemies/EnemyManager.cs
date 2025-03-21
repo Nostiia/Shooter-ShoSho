@@ -13,7 +13,7 @@ public class EnemyManager : NetworkBehaviour
 
     public override void Spawned()
     {
-        if (Object.HasStateAuthority) // Ensures only one instance controls movement
+        if (Object.HasStateAuthority) 
         {
             Position = transform.position;
         }
@@ -34,11 +34,13 @@ public class EnemyManager : NetworkBehaviour
             if (closestPlayer == null) return;
 
             Vector2 directionToPlayer = closestPlayer.transform.position - transform.position;
-            if (Vector2.Dot(transform.right, directionToPlayer) < 0)
+            if (directionToPlayer.x < 0) 
             {
                 transform.rotation = Quaternion.Euler(0, 180, 0);
-                Rpc_RotateZombie();
-
+            }
+            else 
+            {
+                transform.rotation = Quaternion.identity;
             }
 
             Vector2 targetPosition = closestPlayer.transform.position;
@@ -84,17 +86,12 @@ public class EnemyManager : NetworkBehaviour
         transform.position = newPosition;
     }
 
-    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-    private void Rpc_RotateZombie()
-    {
-        transform.rotation = Quaternion.Euler(0, 180, 0);
-    }
-
     public void OnZombieDeath()
     {
         if (Object.HasStateAuthority) 
         {
             _isDead = true;
+            
         }
     }
 

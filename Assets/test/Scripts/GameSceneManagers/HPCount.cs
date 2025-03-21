@@ -1,14 +1,9 @@
 using Fusion;
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using static UnityEditor.PlayerSettings;
 
 public class HPCount : NetworkBehaviour
 {
-    [SerializeField] private Sprite _dethSprite;
-    [SerializeField] private SpriteRenderer _dethRenderer;
     [Networked] private int HP { get; set; } = 20;
     private TMP_Text _hpText;
     private int _hpMax;
@@ -17,15 +12,16 @@ public class HPCount : NetworkBehaviour
     private Collider2D _collider;
 
     private bool _isDied = false;
+    private Animator _animator;
 
     private void Start()
     {
         _hpText = GameObject.Find("HP")?.GetComponent<TMP_Text>();
         _hpMax = HP;
-        _dethRenderer = transform.Find("Body").GetComponent<SpriteRenderer>();
-
         _rb = GetComponent<Rigidbody2D>();
         _collider = GetComponent<Collider2D>();
+
+        _animator = transform.Find("Body").GetComponent<Animator>();
 
         if (_hpText == null)
         {
@@ -98,15 +94,13 @@ public class HPCount : NetworkBehaviour
 
     public void PlayerDied()
     {
-        _dethRenderer.sprite = _dethSprite;
         _isDied = true;
+        _animator.SetBool("isDied", _isDied);
         Player player = transform.transform.GetComponent<Player>();
         if (player != null)
         {
             player.SwitchCameras(false); // Disable camera when the player dies
         }
-        _dethRenderer.sprite = _dethSprite;
-        _isDied = true;
 
         if (_rb != null)
         {

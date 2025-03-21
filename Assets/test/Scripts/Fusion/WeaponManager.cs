@@ -51,10 +51,8 @@ public class WeaponManager : NetworkBehaviour
             {
                 _assignedWeaponIndex = GetUniqueRandomWeaponIndex();
             }
-            while (_assignedWeaponIndex == _hostWeaponIndex);  // Ensure different weapon from host
+            while (_assignedWeaponIndex == _hostWeaponIndex); 
         }
-
-        //UpdateWeapon(_assignedWeaponIndex);
     }
 
     public int GetWeaponIndex()
@@ -72,7 +70,6 @@ public class WeaponManager : NetworkBehaviour
     {
         if (_assignedWeapons.Count >= _weaponSprites.Length)
         {
-            Debug.LogWarning("All weapons assigned! Restarting selection.");
             _assignedWeapons.Clear();
         }
 
