@@ -1,9 +1,5 @@
 using Fusion;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using static Unity.Collections.Unicode;
-using static UnityEngine.RuleTile.TilingRuleOutput;
 
 public class AmmoPlusProperties : NetworkBehaviour
 {
@@ -21,8 +17,7 @@ public class AmmoPlusProperties : NetworkBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        Player player = other.gameObject.GetComponent<Player>();
-        AmmoCount ammoCount = player.transform.GetComponent<AmmoCount>();
+        AmmoCount ammoCount = other.gameObject.GetComponent<AmmoCount>();
         ammoCount.IncrementAmmo(_ammoPlus);
 
         if (Object != null && Object.HasStateAuthority)

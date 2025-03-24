@@ -1,10 +1,5 @@
 using Fusion;
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-using static Unity.Collections.Unicode;
-using static UnityEngine.RuleTile.TilingRuleOutput;
 
 public class BombProperties : NetworkBehaviour
 {
@@ -27,7 +22,7 @@ public class BombProperties : NetworkBehaviour
 
         if (other.GetComponent<Player>() && Object.HasStateAuthority)
         {
-            Rpc_Explode(kc, player);
+            Rpc_Explode(player);
             Runner.Despawn(Object);
         }
     }
@@ -39,21 +34,17 @@ public class BombProperties : NetworkBehaviour
     }
 
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-    private void Rpc_Explode(KillsCount killsCount, Player player)
+    private void Rpc_Explode(Player player)
     {
         Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, _deathRadius);
         foreach (Collider2D collider in colliders)
         {
-            if (collider.TryGetComponent(out NetworkObject netObj))
+            if (collider.TryGetComponent(out NetworkObject netObj)
+                 && collider.GetComponent<EnemyDeathManager>()
+                 && netObj.HasStateAuthority)
             {
-                if (collider.GetComponent<EnemyDeathManager>())
-                {
-                    if (netObj.HasStateAuthority)
-                    {
-                        collider.GetComponent<EnemyDeathManager>().RPC_Die(player);
-                    }
-                }
-            }
+                collider.GetComponent<EnemyDeathManager>().RPC_Die(player);
+            }           
         }
     }
 }

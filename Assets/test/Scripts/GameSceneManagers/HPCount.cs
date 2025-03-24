@@ -4,89 +4,81 @@ using UnityEngine;
 
 public class HPCount : NetworkBehaviour
 {
-    [Networked] private int HP { get; set; } = 20;
+    [Networked] public int HP { get; set; } = 20;
     private TMP_Text _hpText;
     private int _hpMax;
 
     private Rigidbody2D _rb;
-    private Collider2D _collider;
-
     private bool _isDied = false;
-    private Animator _animator;
+    [SerializeField] private Animator _animator;
+
+    private const string HPText = "HP";
+    private int DiedAnimationHash = Animator.StringToHash("isDied");
 
     private void Start()
     {
-        _hpText = GameObject.Find("HP")?.GetComponent<TMP_Text>();
+        _hpText = GameObject.Find(HPText)?.GetComponent<TMP_Text>();
         _hpMax = HP;
         _rb = GetComponent<Rigidbody2D>();
-        _collider = GetComponent<Collider2D>();
-
-        _animator = transform.Find("Body").GetComponent<Animator>();
 
         if (_hpText == null)
         {
             Debug.LogError("HPText UI not found in the scene!");
         }
+
+        UpdateHPUI(); 
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (HP <= 0)
             return;
+
         EnemyManager enemyManager = collision.gameObject.GetComponent<EnemyManager>();
 
         if (enemyManager != null && !enemyManager.IsZombieDeath())
         {
-            DecrementHP(enemyManager.GetDamage());
+            DecrementHP(enemyManager.Damage);
         }
     }
 
     public void DecrementHP(int damage)
     {
-        if (Object.HasStateAuthority)
+        if (Object.HasInputAuthority)
         {
             HP -= damage;
-            UpdateHPText();
-            RPC_HP();
+            RPC_SyncHP(HP);
+            UpdateHPUI();
         }
     }
 
     public void IncrementHP(int plus)
     {
-        if (Object.HasStateAuthority)
+        if (Object.HasInputAuthority)
         {
             HP += plus;
-            UpdateHPText();
-            RPC_HP();
-        }
-    }
-
-    private void UpdateHPText()
-    {
-        if (_hpText != null)
-        {
-            if (Object.HasInputAuthority)
-            {
-                int hpToShow = HP;
-                _hpText.text = $"HP: {hpToShow.ToString()} / {_hpMax}";
-            }
+            RPC_SyncHP(HP);
+            UpdateHPUI();
         }
     }
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
-    public void RPC_HP()
+    private void RPC_SyncHP(int newHP)
     {
-        int hpToShow = HP;
-        _hpText.text = $"HP: {hpToShow.ToString()} / {_hpMax}";
+        HP = newHP;
+    }
+
+    private void UpdateHPUI()
+    {
+        if (Object.HasInputAuthority && _hpText != null)  
+        {
+            _hpText.text = $"HP: {HP} / {_hpMax}";
+        }
     }
 
     private void FixedUpdate()
     {
-        if (_hpText != null)
-        {
-            UpdateHPText();
-        }
-        if (HP <= 0)
+        if (HP <= 0 && !_isDied)
         {
             PlayerDied();
         }
@@ -95,19 +87,15 @@ public class HPCount : NetworkBehaviour
     public void PlayerDied()
     {
         _isDied = true;
-        _animator.SetBool("isDied", _isDied);
-        Player player = transform.transform.GetComponent<Player>();
+        _animator.SetBool(DiedAnimationHash, _isDied);
+
+        Player player = GetComponent<Player>();
         if (player != null)
         {
-            player.SwitchCameras(false); // Disable camera when the player dies
-        }
-
-        if (_rb != null)
-        {
-            _rb.velocity = Vector2.zero;  // Stop any existing movement
+            player.SwitchCameras(false); 
         }
     }
-    
+
     public bool IsPlayerDied()
     {
         return _isDied;

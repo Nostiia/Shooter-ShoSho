@@ -5,17 +5,12 @@ using UnityEngine;
 public class WeaponManager : NetworkBehaviour
 {
     [SerializeField] private Sprite[] _weaponSprites;
-    private SpriteRenderer _weaponRenderer;
+    [SerializeField] private SpriteRenderer _weaponRenderer;
 
     [Networked] private int _assignedWeaponIndex { get; set; }
     [Networked] private int _hostWeaponIndex { get; set; }
 
     private static List<int> _assignedWeapons = new List<int>();
-
-    private void Awake()
-    {
-        _weaponRenderer = transform.Find("Weapon").GetComponent<SpriteRenderer>();
-    }
 
     public override void Spawned()
     {

@@ -2,15 +2,16 @@ using UnityEngine;
 using Fusion;
 using TMPro;
 
-public class AmmoCount :  NetworkBehaviour
+public class AmmoCount : NetworkBehaviour
 {
     [Networked] private int Ammos { get; set; } = 20;
 
     private TMP_Text _ammoText;
     private int _ammoMax;
+    private const string AmmoText = "Ammo";
     private void Start()
     {
-        _ammoText = GameObject.Find("Ammo")?.GetComponent<TMP_Text>();
+        _ammoText = GameObject.Find(AmmoText)?.GetComponent<TMP_Text>();
         _ammoMax = Ammos;
         if (_ammoText == null)
         {

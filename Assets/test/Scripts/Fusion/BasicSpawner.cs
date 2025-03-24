@@ -5,14 +5,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using static Unity.Collections.Unicode;
 
 public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
 {
+    #region not overrided methods
     public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }
     public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) { }
     public void OnConnectedToServer(NetworkRunner runner) { }
@@ -28,6 +25,7 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
     public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
     public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key, ArraySegment<byte> data) { }
     public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress) { }
+    #endregion
 
     private NetworkRunner _runner;
     [SerializeField] private GameObject _loadingPanel;
@@ -35,6 +33,13 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
     private bool _isHost = false;
     [SerializeField] private TMP_InputField _createRoomNameInput;
     [SerializeField] private TMP_InputField _connectRoomNameInput;
+    private bool _mouseButton1;
+    [SerializeField] private NetworkPrefabRef _playerPrefab;
+    private Dictionary<PlayerRef, NetworkObject> _spawnedCharacters = new Dictionary<PlayerRef, NetworkObject>();
+    private int _nextPlayerID = 1;
+    [SerializeField] private Joystick _moveJoystick;
+    [SerializeField] private Joystick _shootJoystick;
+    private bool _isJoystickActive = false;
 
     public async void StartGame(GameMode mode, string roomName)
     {
@@ -64,6 +69,7 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
         _loadingPanel.SetActive(true);
         StartGame(GameMode.Host, roomName);
     }
+
     public void ClientStart()
     {
         string roomName = string.IsNullOrWhiteSpace(_connectRoomNameInput.text) ? "DefaultRoom" : _connectRoomNameInput.text;
@@ -81,9 +87,6 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
         }
     }
 
-    [SerializeField] private NetworkPrefabRef _playerPrefab;
-    private Dictionary<PlayerRef, NetworkObject> _spawnedCharacters = new Dictionary<PlayerRef, NetworkObject>();
-    private int _nextPlayerID = 1;
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
         if (runner.IsServer)
@@ -121,10 +124,6 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
         }
     }
 
-    [SerializeField] private Joystick _moveJoystick;
-    [SerializeField] private Joystick _shootJoystick;
-    private bool _isJoystickActive = false;
-
     public void OnSceneLoadDone(NetworkRunner runner)
     {
         StartCoroutine(FindJoysticks());
@@ -140,9 +139,6 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
         if (_moveJoystick != null && _shootJoystick != null)
             _isJoystickActive = true;
     }
-
-
-    private bool _mouseButton1;
 
     private void Update()
     {

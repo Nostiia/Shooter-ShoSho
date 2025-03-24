@@ -7,10 +7,10 @@ public class TimerManager : NetworkBehaviour
     [Networked] private TickTimer CurrentWaveTimer { get; set; }
     [Networked] private TickTimer RelaxTimer { get; set; }
 
-    private TMP_Text _timerText;
-    [SerializeField] private EnemyAppearenceManager _zombieManager;
-    [SerializeField] private EnemyAppearenceManager _sceletonManager;
-    [SerializeField] private EnemyAppearenceManager _strongZombieManager;
+    [SerializeField] private TMP_Text _timerText;
+
+    [SerializeField] private EnemyAppearenceManager[] _enemyManager;
+
     [SerializeField] private BoxesSpawnerManager _medKitManager;
     [SerializeField] private BoxesSpawnerManager _ammoPlusManager;
     [SerializeField] private BoxesSpawnerManager _bombManager;
@@ -26,11 +26,6 @@ public class TimerManager : NetworkBehaviour
     [SerializeField] private GameObject _winScreen;
     [SerializeField] private GameObject _loseScreen;
     [SerializeField] private GameObject _gameCanvas;
-
-    public override void Spawned()
-    {
-        _timerText = GameObject.Find("Timer")?.GetComponent<TMP_Text>();
-    }
 
     public void StartGame()
     {
@@ -48,7 +43,6 @@ public class TimerManager : NetworkBehaviour
             GameOver(true);
             return;
         }
-
         CurrentWaveTimer = TickTimer.CreateFromSeconds(Runner, _waveDurations[_currentWave]);
         _isRelaxTime = false;
         _lastSpawnCheck = -1;
@@ -57,7 +51,6 @@ public class TimerManager : NetworkBehaviour
     private void StartRelaxTimer()
     {
         if (!Object.HasStateAuthority) return;
-
         RelaxTimer = TickTimer.CreateFromSeconds(Runner, _relaxDurations[_currentWave]);
         _isRelaxTime = true;
     }
@@ -68,76 +61,98 @@ public class TimerManager : NetworkBehaviour
 
         if (!_isRelaxTime)
         {
-            if (CurrentWaveTimer.IsRunning && !AreBothPlayersDead())
+            HandleWaveTimer();
+        }
+        else
+        {
+            HandleRelaxTimer();
+        }
+    }
+
+    private void HandleWaveTimer()
+    {
+        if (CurrentWaveTimer.IsRunning && !AreBothPlayersDead())
+        {
+            if (CurrentWaveTimer.Expired(Runner))
             {
-                if (CurrentWaveTimer.Expired(Runner))
-                {
-                    StartRelaxTimer();
-                }
-                else
-                {
-                    int remainingTime = Mathf.CeilToInt(CurrentWaveTimer.RemainingTime(Runner) ?? 0);
-                    if (remainingTime > 0 && remainingTime % 10 == 0 && remainingTime != _lastSpawnCheck)
-                    {
-                        
-                        _ammoPlusManager?.BoxSpawned();
-                        switch (_currentWave)
-                        {
-                            case 0:
-                                _zombieManager?.ZombieSpawned();
-                                _lastSpawnCheck = remainingTime;
-                                break;
-                            case 1:
-                                _medKitManager?.BoxSpawned();
-                                _zombieManager?.ZombieSpawned();
-                                _sceletonManager?.ZombieSpawned();
-                                _lastSpawnCheck = remainingTime;
-                                break;
-                            case 2:
-                                _medKitManager?.BoxSpawned();
-                                _zombieManager?.ZombieSpawned();
-                                _bombManager?.BoxSpawned();
-                                _sceletonManager?.ZombieSpawned();
-                                _strongZombieManager?.ZombieSpawned();
-                                _lastSpawnCheck = remainingTime;
-                                break;
-                        }
-                    }
-                    RPC_UpdateTimer(remainingTime);
-                }
+                StartRelaxTimer();
             }
-            if (AreBothPlayersDead())
+            else
             {
-                GameOver(false);
+                int remainingTime = Mathf.CeilToInt(CurrentWaveTimer.RemainingTime(Runner) ?? 0);
+                HandleSpawning(remainingTime);
+                RPC_UpdateTimer(remainingTime);
             }
         }
         else
         {
-            if (RelaxTimer.IsRunning)
+            Debug.LogWarning("Wave timer not running properly.");
+        }
+
+        if (AreBothPlayersDead())
+        {
+            GameOver(false);
+        }
+    }
+
+    private void HandleSpawning(int remainingTime)
+    {
+        if (remainingTime > 0 && remainingTime % 10 == 0 && remainingTime != _lastSpawnCheck)
+        {
+            _ammoPlusManager?.BoxSpawned();
+            SpawnEnemiesForWave(_currentWave);
+            _lastSpawnCheck = remainingTime;
+        }
+    }
+
+    private void SpawnEnemiesForWave(int wave)
+    {
+        switch (wave)
+        {
+            case 0:
+                _enemyManager[0].ZombieSpawned();
+                break;
+            case 1:
+                _medKitManager?.BoxSpawned();
+                _enemyManager[0].ZombieSpawned();
+                _enemyManager[1].ZombieSpawned();
+                break;
+            case 2:
+                _medKitManager?.BoxSpawned();
+                _enemyManager[0].ZombieSpawned();
+                _bombManager.BoxSpawned();
+                _enemyManager[1].ZombieSpawned();
+                _enemyManager[2].ZombieSpawned();
+                break;
+        }
+    }
+
+    private void HandleRelaxTimer()
+    {
+        if (RelaxTimer.IsRunning)
+        {
+            if (RelaxTimer.Expired(Runner))
             {
-                if (RelaxTimer.Expired(Runner))
-                {
-                    _currentWave++; 
-                    _currentRelaxTime++; 
-                    StartNextWave();
-                }
-                else
-                {
-                    int remainingTime = Mathf.CeilToInt(RelaxTimer.RemainingTime(Runner) ?? 0);
-                    RPC_UpdateTimer(remainingTime);
-                }
+                _currentWave++;
+                _currentRelaxTime++;
+                StartNextWave();
+            }
+            else
+            {
+                int remainingTime = Mathf.CeilToInt(RelaxTimer.RemainingTime(Runner) ?? 0);
+                RPC_UpdateTimer(remainingTime);
             }
         }
     }
 
     private bool AreBothPlayersDead()
     {
-        Player[] players = FindObjectsOfType<Player>();
+        PlayerHealth[] players = FindObjectsOfType<PlayerHealth>();
         bool allPlayersDead = true;
 
-        foreach (Player player in players)
+        foreach (PlayerHealth player in players)
         {
-            if (player.IsPlayerAlive())
+            if (!player.IsDead())
             {
                 allPlayersDead = false;
                 break;
@@ -154,7 +169,7 @@ public class TimerManager : NetworkBehaviour
             Player[] players = FindObjectsOfType<Player>();
             foreach (Player player in players)
             {
-                player.DisableMovement();
+                player.GetComponent<PlayerMovement>().DisableMovement();
             }
             _gameCanvas.SetActive(false);
             _winScreen.SetActive(true);

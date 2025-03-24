@@ -10,7 +10,10 @@ public class PhysxBall : NetworkBehaviour
 
     private Player _player;
     private int _weaponIndex = -1;
-    private float _weaponLifetime = 6f;
+    private float _weaponLifetime = 6;
+
+    private int[] _damageBasedOnIndex = { 3, 2, 1 };
+    private float[] _lifeTimeBasedOnIndex = { 0.2f, 0.5f, 2.0f };
 
     private void Awake()
     {
@@ -21,20 +24,6 @@ public class PhysxBall : NetworkBehaviour
             if (projectile != this)
             {
                 Physics2D.IgnoreCollision(_collider, projectile.GetComponent<Collider2D>());
-            }
-        }
-        StartCoroutine(IgnoreCollisionsAfterSpawn());
-    }
-
-    private System.Collections.IEnumerator IgnoreCollisionsAfterSpawn()
-    {
-        yield return new WaitForSeconds(0.1f); 
-
-        foreach (PhysxBall projectile in FindObjectsOfType<PhysxBall>())
-        {
-            if (projectile != this)
-            {
-                Physics2D.IgnoreCollision(_collider, projectile._collider);
             }
         }
     }
@@ -49,20 +38,20 @@ public class PhysxBall : NetworkBehaviour
 
     private void SetWeaponProperties()
     {
-        _weaponIndex = _player.GetPlayersWeaponIndex();
+        _weaponIndex = _player.transform.GetComponent<PlayerShooting>().GetWeaponIndex();
         switch (_weaponIndex)
         {
             case 0:
-                Damage = 3;
-                _weaponLifetime = 0.2f;
+                Damage = _damageBasedOnIndex[_weaponIndex];
+                _weaponLifetime = _lifeTimeBasedOnIndex[_weaponIndex];
                 break;
             case 1:
-                Damage = 2;
-                _weaponLifetime = 0.5f;
+                Damage = _damageBasedOnIndex[_weaponIndex];
+                _weaponLifetime = _lifeTimeBasedOnIndex[_weaponIndex];
                 break;
             case 2:
-                Damage = 1;
-                _weaponLifetime = 2.0f;
+                Damage = _damageBasedOnIndex[_weaponIndex];
+                _weaponLifetime = _lifeTimeBasedOnIndex[_weaponIndex];
                 break;
         }
     }
@@ -78,7 +67,6 @@ public class PhysxBall : NetworkBehaviour
     private void OnTriggerEnter2D(Collider2D other)
     {
         EnemyDeathManager zombie = other.gameObject.GetComponent<EnemyDeathManager>();
-
         if (zombie != null && !zombie.IsZombieDead())
         {
             if (Object != null && Object.HasStateAuthority) 
@@ -89,11 +77,11 @@ public class PhysxBall : NetworkBehaviour
             {
                 RPC_RequestDamage(zombie.Object, Damage);
             }
-        }
 
-        if (Object != null && Object.HasStateAuthority)
-        {
-            Runner.Despawn(Object);
+            if (Object != null && Object.HasStateAuthority)
+            {
+                Runner.Despawn(Object);
+            }
         }
     }
 

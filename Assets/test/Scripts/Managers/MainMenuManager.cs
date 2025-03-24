@@ -1,6 +1,4 @@
 using Fusion;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -10,6 +8,7 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private GameObject _mainMenuCanvas;
     [SerializeField] private GameObject _createRoomPanel;
     [SerializeField] private GameObject _connectRoomPanel;
+
     private void Start()
     {
         _chooseAvatarCanvas.SetActive(false);
@@ -61,6 +60,6 @@ public class MainMenuManager : MonoBehaviour
             runner.Shutdown();
         }
 
-        SceneManager.LoadScene("SampleScene");
+        SceneManager.LoadScene(0);
     }
 }

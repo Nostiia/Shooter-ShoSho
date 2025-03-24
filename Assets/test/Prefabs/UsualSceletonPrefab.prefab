@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 5570123417603408987}
   - component: {fileID: 2656603575594706117}
   - component: {fileID: 8719671217164274347}
+  - component: {fileID: 5566580294466037898}
   m_Layer: 0
   m_Name: Body
   m_TagString: Untagged
@@ -106,6 +107,23 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &5566580294466037898
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2409718285741676200}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 0
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0
 --- !u!1 &2575824193381180310
 GameObject:
   m_ObjectHideFlags: 0
@@ -120,6 +138,7 @@ GameObject:
   - component: {fileID: 8765414981150650821}
   - component: {fileID: -7080601680419396340}
   - component: {fileID: -8702827630565963501}
+  - component: {fileID: -658906472813764882}
   m_Layer: 0
   m_Name: UsualSceletonPrefab
   m_TagString: Untagged
@@ -234,6 +253,8 @@ MonoBehaviour:
   NetworkedBehaviours:
   - {fileID: -7080601680419396340}
   - {fileID: -8702827630565963501}
+  - {fileID: -658906472813764882}
+  - {fileID: 5566580294466037898}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &-7080601680419396340
 MonoBehaviour:
@@ -248,8 +269,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _Health: 4
-  _deathZombie: {fileID: 21300000, guid: d429a58f0da27984bb067fc68eda52fc, type: 2}
-  _zombieRenderer: {fileID: 0}
+  _animator: {fileID: 8719671217164274347}
 --- !u!114 &-8702827630565963501
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -266,3 +286,20 @@ MonoBehaviour:
   _safeDistance: 5
   _skeletonBallPrefab: {fileID: 1943775436969131643, guid: f5b418ea5fb9cc34c9351ba5e5549e15, type: 3}
   _attackCooldown: 5
+--- !u!114 &-658906472813764882
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2575824193381180310}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 0
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0

@@ -242,6 +242,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _Health: 3
+  _animator: {fileID: 6270225580872768608}
 --- !u!50 &1936754483293340738
 Rigidbody2D:
   serializedVersion: 4
@@ -282,7 +283,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _speed: 1
-  _damage: 3
 --- !u!114 &3744432594007298923
 MonoBehaviour:
   m_ObjectHideFlags: 0
