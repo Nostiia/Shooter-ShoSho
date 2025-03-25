@@ -1,10 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
 using Fusion;
-using Fusion.Addons.Physics;
-using Fusion.Sockets;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class StartManager : MonoBehaviour
 {
@@ -12,6 +8,8 @@ public class StartManager : MonoBehaviour
     [SerializeField] private Player _player;
     [SerializeField] private GameObject _startButton;
     [SerializeField] private GameObject _startCanvas;
+
+    private const string _sceneName = "MainScene";
     private void Start()
     {
         _spawner = FindObjectOfType<BasicSpawner>();
@@ -20,7 +18,7 @@ public class StartManager : MonoBehaviour
 
     private void Update()
     {
-        if ( _spawner != null  && _spawner.PlayerCount() == 2 && _spawner.IsPlayerHost())
+        if ( _spawner != null  &&  _spawner.PlayerCount() == 2 && _spawner.IsPlayerHost())
         {
             _startButton.SetActive(true);
         }
@@ -31,8 +29,19 @@ public class StartManager : MonoBehaviour
         _startCanvas.SetActive(false);
         foreach (var player in FindObjectsOfType<Player>())
         {
-            player.RPC_CanMove(true);
+            player.GetComponent<PlayerMovement>().RPC_CanMove(true);
+        }
+        FindObjectOfType<TimerManager>().StartGame();
+    }
+
+    public void BackToMain()
+    {
+        NetworkRunner runner = FindObjectOfType<NetworkRunner>(); 
+        if (runner != null)
+        {
+            runner.Shutdown(); 
         }
 
+        SceneManager.LoadScene(_sceneName);
     }
 }

@@ -1,5 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
+using Fusion;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -9,6 +8,9 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private GameObject _mainMenuCanvas;
     [SerializeField] private GameObject _createRoomPanel;
     [SerializeField] private GameObject _connectRoomPanel;
+
+    private const string _sceneName = "MainScene";
+
     private void Start()
     {
         _chooseAvatarCanvas.SetActive(false);
@@ -50,5 +52,16 @@ public class MainMenuManager : MonoBehaviour
         _chooseAvatarCanvas.SetActive(false);
         _createRoomPanel.SetActive(false);
         _connectRoomPanel.SetActive(false);
+    }
+
+    public void BackOfLoading()
+    {
+        NetworkRunner runner = FindObjectOfType<NetworkRunner>();
+        if (runner != null)
+        {
+            runner.Shutdown();
+        }
+
+        SceneManager.LoadScene(_sceneName);
     }
 }

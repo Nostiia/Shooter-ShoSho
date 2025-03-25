@@ -1,6 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -31,10 +28,9 @@ public class ChooseAvatarManager : MonoBehaviour
             underline.gameObject.SetActive(false);
         }
 
-        // Assign button click listeners dynamically
         for (int i = 0; i < _avatarButtons.Length; i++)
         {
-            int index = i; // Necessary for capturing correct index in the loop
+            int index = i;
             _avatarButtons[i].onClick.AddListener(() => SelectAvatar(index));
         }
 
@@ -65,7 +61,6 @@ public class ChooseAvatarManager : MonoBehaviour
         // Save selected avatar for use in the game
         PlayerPrefs.SetInt("SelectedAvatar", _selectedAvatarIndex);
         PlayerPrefs.Save();
-        Debug.Log("Avatar " + _selectedAvatarIndex + " selected!");
 
         foreach (Image avatar in _avatars)
         {
