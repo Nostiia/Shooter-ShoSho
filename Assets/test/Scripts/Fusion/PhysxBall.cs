@@ -39,21 +39,8 @@ public class PhysxBall : NetworkBehaviour
     private void SetWeaponProperties()
     {
         _weaponIndex = _player.transform.GetComponent<PlayerShooting>().GetWeaponIndex();
-        switch (_weaponIndex)
-        {
-            case 0:
-                Damage = _damageBasedOnIndex[_weaponIndex];
-                _weaponLifetime = _lifeTimeBasedOnIndex[_weaponIndex];
-                break;
-            case 1:
-                Damage = _damageBasedOnIndex[_weaponIndex];
-                _weaponLifetime = _lifeTimeBasedOnIndex[_weaponIndex];
-                break;
-            case 2:
-                Damage = _damageBasedOnIndex[_weaponIndex];
-                _weaponLifetime = _lifeTimeBasedOnIndex[_weaponIndex];
-                break;
-        }
+        Damage = _damageBasedOnIndex[_weaponIndex];
+        _weaponLifetime = _lifeTimeBasedOnIndex[_weaponIndex];
     }
 
     public override void FixedUpdateNetwork()

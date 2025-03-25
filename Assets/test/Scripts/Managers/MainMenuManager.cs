@@ -9,6 +9,8 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private GameObject _createRoomPanel;
     [SerializeField] private GameObject _connectRoomPanel;
 
+    private const string _sceneName = "MainScene";
+
     private void Start()
     {
         _chooseAvatarCanvas.SetActive(false);
@@ -60,6 +62,6 @@ public class MainMenuManager : MonoBehaviour
             runner.Shutdown();
         }
 
-        SceneManager.LoadScene(0);
+        SceneManager.LoadScene(_sceneName);
     }
 }

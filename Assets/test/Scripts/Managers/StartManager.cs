@@ -8,6 +8,8 @@ public class StartManager : MonoBehaviour
     [SerializeField] private Player _player;
     [SerializeField] private GameObject _startButton;
     [SerializeField] private GameObject _startCanvas;
+
+    private const string _sceneName = "MainScene";
     private void Start()
     {
         _spawner = FindObjectOfType<BasicSpawner>();
@@ -40,6 +42,6 @@ public class StartManager : MonoBehaviour
             runner.Shutdown(); 
         }
 
-        SceneManager.LoadScene(0);
+        SceneManager.LoadScene(_sceneName);
     }
 }

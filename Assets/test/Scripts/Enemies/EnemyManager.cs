@@ -9,12 +9,14 @@ public class EnemyManager : NetworkBehaviour
 
     private bool _isDead = false;
     private Player _targetPlayer;
+    [SerializeField] private Player[] _players;
 
     public override void Spawned()
     {
         if (Object.HasStateAuthority) 
         {
             Position = transform.position;
+            _players = FindObjectsOfType<Player>();
             _targetPlayer = FindClosestPlayer();
         }
     }
@@ -58,14 +60,12 @@ public class EnemyManager : NetworkBehaviour
 
     private Player FindClosestPlayer()
     {
-        Player[] players = FindObjectsOfType<Player>();
-
-        if (players.Length == 0) return null;
+        if (_players.Length == 0) return null;
 
         Player closestPlayer = null;
         float minDistance = float.MaxValue;
 
-        foreach (Player player in players)
+        foreach (Player player in _players)
         {
             if (!player.GetComponent<PlayerHealth>().IsDead())
             {
