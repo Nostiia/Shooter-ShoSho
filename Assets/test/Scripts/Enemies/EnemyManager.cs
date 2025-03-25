@@ -1,27 +1,22 @@
 using Fusion;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class EnemyManager : NetworkBehaviour
 {
     [SerializeField] private float _speed = 0.5f;
-    [SerializeField] private int _damage = 3;
+    [SerializeField] public int Damage { get; private set; } = 3;
     [Networked] private Vector2 Position { get; set; }
 
     private bool _isDead = false;
+    private Player _targetPlayer;
 
     public override void Spawned()
     {
         if (Object.HasStateAuthority) 
         {
             Position = transform.position;
+            _targetPlayer = FindClosestPlayer();
         }
-    }
-
-    public int GetDamage()
-    {
-        return _damage;
     }
 
     public override void FixedUpdateNetwork()
@@ -30,10 +25,10 @@ public class EnemyManager : NetworkBehaviour
 
         if (Object.HasStateAuthority)
         {
-            Player closestPlayer = FindClosestPlayer();
-            if (closestPlayer == null) return;
+            UpdateTargetPlayer();
+            if (_targetPlayer == null) return;
 
-            Vector2 directionToPlayer = closestPlayer.transform.position - transform.position;
+            Vector2 directionToPlayer = _targetPlayer.transform.position - transform.position;
             if (directionToPlayer.x < 0) 
             {
                 transform.rotation = Quaternion.Euler(0, 180, 0);
@@ -43,15 +38,22 @@ public class EnemyManager : NetworkBehaviour
                 transform.rotation = Quaternion.identity;
             }
 
-            Vector2 targetPosition = closestPlayer.transform.position;
+            Vector2 targetPosition = _targetPlayer.transform.position;
             Vector2 newPos = Vector2.MoveTowards(Position, targetPosition, _speed * Runner.DeltaTime);
 
             Position = newPos;
-            Rpc_MoveZombie(newPos);
-
         }
 
         transform.position = Position;
+    }
+
+    private void UpdateTargetPlayer()
+    {
+        Player newClosestPlayer = FindClosestPlayer();
+        if (newClosestPlayer != null && newClosestPlayer != _targetPlayer)
+        {
+            _targetPlayer = newClosestPlayer;
+        }
     }
 
     private Player FindClosestPlayer()
@@ -65,7 +67,7 @@ public class EnemyManager : NetworkBehaviour
 
         foreach (Player player in players)
         {
-            if (player.IsPlayerAlive())
+            if (!player.GetComponent<PlayerHealth>().IsDead())
             {
                 float distance = Vector2.Distance(transform.position, player.transform.position);
                 if (distance < minDistance)
@@ -79,20 +81,9 @@ public class EnemyManager : NetworkBehaviour
         return closestPlayer;
     }
 
-    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-    private void Rpc_MoveZombie(Vector2 newPosition)
-    {
-        Position = newPosition;
-        transform.position = newPosition;
-    }
-
     public void OnZombieDeath()
     {
-        if (Object.HasStateAuthority) 
-        {
-            _isDead = true;
-            
-        }
+        _isDead = true;
     }
 
     public bool IsZombieDeath()

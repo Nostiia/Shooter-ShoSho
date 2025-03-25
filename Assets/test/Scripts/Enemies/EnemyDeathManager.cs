@@ -5,33 +5,25 @@ using UnityEngine;
 public class EnemyDeathManager : NetworkBehaviour
 {
     [Networked] public int Health { get; set; } = 3; 
-
-    private Rigidbody2D _rb;
     private bool _isDead = false;
+    [SerializeField] private Animator _animator;
 
-    private KillsCount _playerKillsCount;
-
-    private Animator _animator;
-
-    private void Start()
-    {
-        _rb = GetComponent<Rigidbody2D>();
-        _animator = transform.Find("Body").GetComponent<Animator>();
-    }
+    private int HittedAnimationHash = Animator.StringToHash("isHitted");
+    private int DiedAnimationHash = Animator.StringToHash("isDied");
 
     public void TakeDamage(int damage, Player player)
     {
         if (Object.HasStateAuthority) 
         {
             Health -= damage;
-            _animator.SetBool("isHitted", true);
+            _animator.SetBool(HittedAnimationHash, true);
             RPC_Hitted();
             StartCoroutine(ResetHitAnimation());
             player.transform.GetComponent<KillsCount>().AddDamage(damage);
             if (Health <= 0)
             {
                 _isDead = true;
-                _animator.SetBool("isDied", _isDead);
+                _animator.SetBool(DiedAnimationHash, _isDead);
                 RPC_Die(player);
             }
         }
@@ -40,7 +32,7 @@ public class EnemyDeathManager : NetworkBehaviour
     private IEnumerator ResetHitAnimation()
     {
         yield return new WaitForSeconds(1f);
-        _animator.SetBool("isHitted", false);
+        _animator.SetBool(HittedAnimationHash, false);
     }
 
     public bool IsZombieDead()
@@ -51,7 +43,7 @@ public class EnemyDeathManager : NetworkBehaviour
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     public void RPC_Hitted()
     {
-        _animator.SetBool("isHitted", true);
+        _animator.SetBool(HittedAnimationHash, true);
         StartCoroutine(ResetHitAnimation());
     }
 
@@ -59,7 +51,7 @@ public class EnemyDeathManager : NetworkBehaviour
     public void RPC_Die(Player player)
     {
         _isDead = true;
-        _animator.SetBool("isDied", _isDead);
+        _animator.SetBool(DiedAnimationHash, _isDead);
         KillsCount kc = player.GetComponent<KillsCount>();
         if (kc != null)
         {

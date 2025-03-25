@@ -1,10 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
 using Fusion;
-using Fusion.Addons.Physics;
-using Fusion.Sockets;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class StartManager : MonoBehaviour
@@ -32,7 +27,7 @@ public class StartManager : MonoBehaviour
         _startCanvas.SetActive(false);
         foreach (var player in FindObjectsOfType<Player>())
         {
-            player.RPC_CanMove(true);
+            player.GetComponent<PlayerMovement>().RPC_CanMove(true);
         }
         FindObjectOfType<TimerManager>().StartGame();
     }
@@ -45,6 +40,6 @@ public class StartManager : MonoBehaviour
             runner.Shutdown(); 
         }
 
-        SceneManager.LoadScene("SampleScene");
+        SceneManager.LoadScene(0);
     }
 }

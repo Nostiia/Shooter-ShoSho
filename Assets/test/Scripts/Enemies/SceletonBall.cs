@@ -39,7 +39,7 @@ public class SceletonBall : NetworkBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        Player player = other.gameObject.GetComponent<Player>();
+        PlayerHealth player = other.gameObject.GetComponent<PlayerHealth>();
         if (player)
         {
             player.TakeDamage(_damage);

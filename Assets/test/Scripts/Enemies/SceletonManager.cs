@@ -1,6 +1,5 @@
-using System.Collections;
-using UnityEngine;
 using Fusion;
+using UnityEngine;
 
 public class SkeletonManager : NetworkBehaviour
 {
@@ -50,12 +49,10 @@ public class SkeletonManager : NetworkBehaviour
         if (Vector2.Dot(transform.right, directionToPlayer) < 0)
         {
             transform.rotation = Quaternion.Euler(0, 180, 0);
-            Rpc_RotateSkeleton();
         }
 
         Vector2 newPos = (Vector2)transform.position + moveDirection * _speed * Runner.DeltaTime;
         Position = newPos;
-        Rpc_MoveSkeleton(newPos);
 
         if (Time.time >= _nextAttackTime)
         {
@@ -80,7 +77,7 @@ public class SkeletonManager : NetworkBehaviour
 
         foreach (Player player in players)
         {
-            if (player.IsPlayerAlive())
+            if (!player.GetComponent<PlayerHealth>().IsDead())
             {
                 float distance = Vector2.Distance(transform.position, player.transform.position);
                 if (distance < minDistance)
@@ -95,19 +92,6 @@ public class SkeletonManager : NetworkBehaviour
     }
 
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-    private void Rpc_MoveSkeleton(Vector2 newPosition)
-    {
-        Position = newPosition;
-        transform.position = newPosition;
-    }
-
-    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-    private void Rpc_RotateSkeleton()
-    {
-        transform.rotation = Quaternion.Euler(0, 180, 0);
-    }
-
-    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     private void Rpc_SpawnEnergyBall(Vector2 spawnPosition, Vector2 targetPosition)
     {
         float playerDirection = targetPosition.x - spawnPosition.x;
@@ -116,7 +100,6 @@ public class SkeletonManager : NetworkBehaviour
         NetworkObject networkObject = Runner.Spawn(_skeletonBallPrefab, spawnPosition + spawnOffset, Quaternion.identity);
         networkObject.gameObject.GetComponent<SceletonBall>().Initialize(targetPosition);
     }
-
 
     public void OnSkeletonDeath()
     {
