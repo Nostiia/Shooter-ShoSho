@@ -9,7 +9,7 @@ using UnityEngine;
 
 public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
 {
-    #region not overrided methods
+    #region interfaces methods
     public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }
     public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) { }
     public void OnConnectedToServer(NetworkRunner runner) { }
